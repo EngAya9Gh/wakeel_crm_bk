@@ -1,0 +1,740 @@
+{
+    "info": {
+        "_postman_id": "b5a9c8e1-5f2a-4b9d-9c8e-1a2b3c4d5e6f",
+        "name": "CRM Wakeel API",
+        "description": "Comprehensive Postman collection for CRM Wakeel API v1",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "Login",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"password\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Me",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/auth/me",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "me"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Refresh Token",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/auth/refresh",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "refresh"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/auth/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "logout"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Clients",
+            "item": [
+                {
+                    "name": "List Clients",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/clients?page=1&per_page=15",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "clients"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true,
+                                    "description": "Search by name, email, phone, company"
+                                },
+                                {
+                                    "key": "status_id",
+                                    "value": "1",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "priority",
+                                    "value": "high",
+                                    "disabled": true,
+                                    "description": "high, medium, low"
+                                },
+                                {
+                                    "key": "lead_rating",
+                                    "value": "hot",
+                                    "disabled": true,
+                                    "description": "hot, warm, cold"
+                                },
+                                {
+                                    "key": "source_id",
+                                    "value": "1",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "city_id",
+                                    "value": "1",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "region_id",
+                                    "value": "1",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "assigned_to",
+                                    "value": "1",
+                                    "disabled": true,
+                                    "description": "User ID"
+                                },
+                                {
+                                    "key": "tags[]",
+                                    "value": "1",
+                                    "disabled": true,
+                                    "description": "Tag IDs array"
+                                },
+                                {
+                                    "key": "sort_by",
+                                    "value": "created_at",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "sort_dir",
+                                    "value": "desc",
+                                    "disabled": true
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Client",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"New Client\",\n    \"phone\": \"0123456789\",\n    \"email\": \"client@example.com\",\n    \"status_id\": 1,\n    \"priority\": \"medium\",\n    \"lead_rating\": \"warm\",\n    \"region_id\": 1,\n    \"city_id\": 1,\n    \"assigned_to\": 1\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/clients",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "clients"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Show Client",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/clients/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "clients",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Client",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Updated Name\",\n    \"priority\": \"high\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/clients/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "clients",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Client",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/clients/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "clients",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Change Status",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"status_id\": 2\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/clients/1/status",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "clients",
+                                "1",
+                                "status"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Assign Client",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"user_id\": 2\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/clients/1/assign",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "clients",
+                                "1",
+                                "assign"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Comments",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/clients/1/comments",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "clients",
+                                "1",
+                                "comments"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Add Comment",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "type_id",
+                                    "value": "1",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "content",
+                                    "value": "This is a comment",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/clients/1/comments",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "clients",
+                                "1",
+                                "comments"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Timeline",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/clients/1/timeline",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "clients",
+                                "1",
+                                "timeline"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/clients/stats",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "clients",
+                                "stats"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "KPIs",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/clients/kpis",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "clients",
+                                "kpis"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Invoices",
+            "item": [
+                {
+                    "name": "List Invoices",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/invoices",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "invoices"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Invoice",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"client_id\": 1,\n    \"due_date\": \"2024-12-31\",\n    \"items\": [\n        {\n            \"description\": \"Web Design\",\n            \"quantity\": 1,\n            \"unit_price\": 1000\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/invoices",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "invoices"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Change Status",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"status\": \"paid\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/invoices/1/status",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "invoices",
+                                "1",
+                                "status"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Appointments",
+            "item": [
+                {
+                    "name": "List Appointments",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/appointments",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "appointments"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Appointment",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"client_id\": 1,\n    \"title\": \"Initial Meeting\",\n    \"type\": \"meeting\",\n    \"start_at\": \"2024-02-01 10:00\",\n    \"end_at\": \"2024-02-01 11:00\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/appointments",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "appointments"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Settings",
+            "item": [
+                {
+                    "name": "Get Statuses",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/settings/statuses",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "settings",
+                                "statuses"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Status",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"New Status\",\n    \"color\": \"#FF0000\",\n    \"weight\": 10\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/settings/statuses",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "settings",
+                                "statuses"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Sources",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/settings/sources",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "settings",
+                                "sources"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Permissions",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/settings/permissions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "settings",
+                                "permissions"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Dashboard",
+            "item": [
+                {
+                    "name": "Summary",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/summary",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "dashboard",
+                                "summary"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Charts",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/charts?period=month",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "dashboard",
+                                "charts"
+                            ],
+                            "query": [
+                                {
+                                    "key": "period",
+                                    "value": "month"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000/api/v1",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "YOUR_ACCESS_TOKEN",
+            "type": "string"
+        }
+    ]
+}
