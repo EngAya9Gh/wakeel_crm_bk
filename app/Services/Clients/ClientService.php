@@ -30,6 +30,12 @@ class ClientService
     public function createClient(array $data)
     {
         $data['first_contact_at'] = now();
+        
+        // Auto-assign to the creator if not specifically assigned already
+        if (empty($data['assigned_to'])) {
+            $data['assigned_to'] = auth()->id();
+        }
+
         $client = $this->clientRepository->create($data);
         
         // Log timeline
