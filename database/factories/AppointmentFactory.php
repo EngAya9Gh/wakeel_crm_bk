@@ -16,18 +16,18 @@ class AppointmentFactory extends Factory
      */
     public function definition(): array
     {
-        $start = $this->faker->dateTimeBetween('-1 month', '+2 months');
+        $faker = \Faker\Factory::create();
+        $start = $faker->dateTimeBetween('-1 month', '+2 months');
         $end = (clone $start)->modify('+1 hour');
 
         return [
-            'type' => $this->faker->randomElement(['call', 'meeting', 'visit']),
-            'title' => $this->faker->sentence(3),
-            'description' => $this->faker->paragraph,
+            'type' => $faker->randomElement(['call', 'meeting', 'visit']),
+            'title' => $faker->sentence(3),
+            'description' => $faker->paragraph,
             'start_at' => $start,
             'end_at' => $end,
-            'status' => $this->faker->randomElement(['scheduled', 'completed', 'cancelled', 'no_show']),
-            'location' => $this->faker->address,
-            // 'meeting_link' => $this->faker->url, // Column does not exist
+            'status' => $faker->randomElement(['scheduled', 'completed', 'cancelled', 'no_show']),
+            'location' => $faker->address,
             // client_id and user_id should be provided
         ];
     }

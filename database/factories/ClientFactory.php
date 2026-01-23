@@ -16,28 +16,30 @@ class ClientFactory extends Factory
      */
     public function definition(): array
     {
+        $faker = \Faker\Factory::create('ar_SA');
+
         // Get random valid IDs (fallback to 1 if empty/testing)
         $regionId = \App\Models\Region::inRandomOrder()->value('id') ?? 1;
         $cityId = \App\Models\City::where('region_id', $regionId)->inRandomOrder()->value('id') ?? 1;
 
         return [
-            'name' => 'العميل ' . $this->faker->name,
-            'email' => $this->faker->unique()->safeEmail,
-            'phone' => '05' . $this->faker->numberBetween(10000000, 99999999),
-            'company' => $this->faker->boolean(40) ? $this->faker->company : null,
-            'address' => $this->faker->address,
+            'name' => 'العميل ' . $faker->name,
+            'email' => $faker->unique()->safeEmail,
+            'phone' => '05' . $faker->numberBetween(10000000, 99999999),
+            'company' => $faker->boolean(40) ? $faker->company : null,
+            'address' => $faker->address,
             'status_id' => \Illuminate\Support\Facades\DB::table('client_statuses')->inRandomOrder()->value('id') ?? 1,
-            'priority' => $this->faker->randomElement(['high', 'medium', 'low']),
-            'lead_rating' => $this->faker->randomElement(['hot', 'warm', 'cold']),
+            'priority' => $faker->randomElement(['high', 'medium', 'low']),
+            'lead_rating' => $faker->randomElement(['hot', 'warm', 'cold']),
             'source_id' => \Illuminate\Support\Facades\DB::table('sources')->inRandomOrder()->value('id') ?? 1,
-            'source_status' => $this->faker->randomElement(['valid', 'invalid']),
+            'source_status' => $faker->randomElement(['valid', 'invalid']),
             // 'invalid_reason_id' => null, // Mostly valid
             'behavior_id' => \Illuminate\Support\Facades\DB::table('behaviors')->inRandomOrder()->value('id') ?? 1,
             'region_id' => $regionId,
             'city_id' => $cityId,
             'assigned_to' => null, // Will be assigned later or null
-            'first_contact_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
-            'converted_at' => $this->faker->boolean(20) ? $this->faker->dateTimeBetween('-6 months', 'now') : null,
+            'first_contact_at' => $faker->dateTimeBetween('-1 year', 'now'),
+            'converted_at' => $faker->boolean(20) ? $faker->dateTimeBetween('-6 months', 'now') : null,
         ];
     }
 }

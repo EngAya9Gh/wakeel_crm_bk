@@ -40,7 +40,7 @@ class CommentFactory extends Factory
         return [
             'content' => $faker->randomElement($comments), 
             'subject' => $faker->randomElement($subjects),
-            'outcome' => $this->faker->randomElement(['positive', 'neutral', 'negative']),
+            'outcome' => $faker->randomElement(['positive', 'neutral', 'negative']),
             'type_id' => null, // Override in seeder
             // 'client_id' and 'user_id' should be provided
         ];
