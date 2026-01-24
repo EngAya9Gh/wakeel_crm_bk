@@ -249,6 +249,23 @@ class ClientService
         return $filter->delete();
     }
 
+    // Invoices & Appointments
+    public function getClientInvoices(int $clientId, int $perPage = 15)
+    {
+        return \App\Models\Invoice::where('client_id', $clientId)
+            ->with(['tags', 'user:id,name'])
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+    }
+
+    public function getClientAppointments(int $clientId, int $perPage = 15)
+    {
+        return \App\Models\Appointment::where('client_id', $clientId)
+            ->with(['user:id,name'])
+            ->orderBy('start_at', 'desc')
+            ->paginate($perPage);
+    }
+
     // Export & PDF
     public function generateClientPdf(int $clientId)
     {
@@ -293,5 +310,60 @@ class ClientService
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    // ===================== PROCEDURES (TASKS) =====================
+
+    public function getProcedures(int $clientId)
+    {
+        return \App\Models\ClientProcedure::where('client_id', $clientId)
+            ->with('completedBy:id,name')
+            ->orderByRaw("FIELD(status, 'pending', 'completed', 'cancelled')")
+            ->orderBy('due_date', 'asc')
+            ->get();
+    }
+
+    public function createProcedure(int $clientId, array $data)
+    {
+        $procedure = \App\Models\ClientProcedure::create([
+            'client_id' => $clientId,
+            'title' => $data['title'],
+            'description' => $data['description'] ?? null,
+            'status' => $data['status'] ?? 'pending',
+            'due_date' => $data['due_date'] ?? null,
+        ]);
+
+        $this->logTimeline($clientId, 'procedure_added', "تمت إضافة إجراء: {$data['title']}");
+
+        return $procedure;
+    }
+
+    public function updateProcedure(int $procedureId, array $data, ?int $userId = null)
+    {
+        $procedure = \App\Models\ClientProcedure::findOrFail($procedureId);
+        
+        $updateData = array_filter([
+            'title' => $data['title'] ?? null,
+            'description' => $data['description'] ?? null,
+            'status' => $data['status'] ?? null,
+            'due_date' => $data['due_date'] ?? null,
+        ], fn($v) => $v !== null);
+
+        // If marking as completed
+        if (isset($data['status']) && $data['status'] === 'completed' && $procedure->status !== 'completed') {
+            $updateData['completed_at'] = now();
+            $updateData['completed_by'] = $userId;
+            $this->logTimeline($procedure->client_id, 'procedure_completed', "تم إنجاز إجراء: {$procedure->title}", null, $userId);
+        }
+
+        $procedure->update($updateData);
+        return $procedure->fresh()->load('completedBy:id,name');
+    }
+
+    public function deleteProcedure(int $procedureId)
+    {
+        $procedure = \App\Models\ClientProcedure::findOrFail($procedureId);
+        $this->logTimeline($procedure->client_id, 'procedure_deleted', "تم حذف إجراء: {$procedure->title}");
+        return $procedure->delete();
     }
 }

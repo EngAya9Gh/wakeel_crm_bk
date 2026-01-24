@@ -34,6 +34,7 @@ class Client extends Model
     public function invoices() { return $this->hasMany(Invoice::class); }
     public function appointments() { return $this->hasMany(Appointment::class); }
     public function timeline() { return $this->hasMany(ClientTimeline::class); }
+    public function procedures() { return $this->hasMany(ClientProcedure::class); }
     
     // Pivot
     public function tags() { return $this->belongsToMany(Tag::class, 'client_tag'); }

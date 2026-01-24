@@ -217,14 +217,32 @@ class ClientController extends Controller
         return $this->successResponse($files);
     }
 
-    /**
-     * GET /api/v1/clients/{id}/timeline
-     * جلب الخط الزمني للعميل
-     */
     public function getTimeline(int $id)
     {
         $timeline = $this->clientService->getTimeline($id);
         return $this->successResponse($timeline);
+    }
+
+    /**
+     * GET /api/v1/clients/{id}/invoices
+     * جلب فواتير العميل
+     */
+    public function getInvoices(Request $request, int $id)
+    {
+        $perPage = $request->input('per_page', 10);
+        $invoices = $this->clientService->getClientInvoices($id, $perPage);
+        return $this->paginatedResponse($invoices, 'تم جلب فواتير العميل بنجاح');
+    }
+
+    /**
+     * GET /api/v1/clients/{id}/appointments
+     * جلب مواعيد العميل
+     */
+    public function getAppointments(Request $request, int $id)
+    {
+        $perPage = $request->input('per_page', 10);
+        $appointments = $this->clientService->getClientAppointments($id, $perPage);
+        return $this->paginatedResponse($appointments, 'تم جلب مواعيد العميل بنجاح');
     }
 
     /**
@@ -278,5 +296,61 @@ class ClientController extends Controller
     public function downloadPdf(int $id)
     {
         return $this->clientService->generateClientPdf($id);
+    }
+
+    // ===================== PROCEDURES (TASKS) =====================
+
+    /**
+     * GET /api/v1/clients/{id}/procedures
+     * جلب إجراءات العمل للعميل
+     */
+    public function getProcedures(int $id)
+    {
+        $procedures = $this->clientService->getProcedures($id);
+        return $this->successResponse($procedures, 'تم جلب الإجراءات بنجاح');
+    }
+
+    /**
+     * POST /api/v1/clients/{id}/procedures
+     * إضافة إجراء جديد
+     */
+    public function addProcedure(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'status' => 'nullable|in:pending,completed,cancelled',
+            'due_date' => 'nullable|date',
+        ]);
+
+        $procedure = $this->clientService->createProcedure($id, $validated);
+        return $this->createdResponse($procedure, 'تمت إضافة الإجراء بنجاح');
+    }
+
+    /**
+     * PUT /api/v1/clients/{clientId}/procedures/{procedureId}
+     * تعديل إجراء
+     */
+    public function updateProcedure(Request $request, int $clientId, int $procedureId)
+    {
+        $validated = $request->validate([
+            'title' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'status' => 'nullable|in:pending,completed,cancelled',
+            'due_date' => 'nullable|date',
+        ]);
+
+        $procedure = $this->clientService->updateProcedure($procedureId, $validated, $request->user()->id);
+        return $this->successResponse($procedure, 'تم تحديث الإجراء بنجاح');
+    }
+
+    /**
+     * DELETE /api/v1/clients/{clientId}/procedures/{procedureId}
+     * حذف إجراء
+     */
+    public function deleteProcedure(int $clientId, int $procedureId)
+    {
+        $this->clientService->deleteProcedure($procedureId);
+        return $this->deletedResponse('تم حذف الإجراء بنجاح');
     }
 }

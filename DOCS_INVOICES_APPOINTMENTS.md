@@ -171,7 +171,7 @@
 
 ### 1.8 تحميل PDF (Download PDF)
 - **المسار:** `GET /api/v1/invoices/{id}/pdf`
-- **Status:** حالياً يعيد `501 Not Implemented` حتى يتم ربط مكتبة الـ PDF.
+- **Status:** يقوم بتحميل ملف الفاتورة بصيغة PDF مباشرة (Content-Type: application/pdf).
 
 ---
 

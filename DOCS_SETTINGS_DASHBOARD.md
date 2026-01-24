@@ -237,3 +237,117 @@
   ]
 }
 ```
+
+---
+
+## 8. وحدة الداشبورد (Dashboard)
+
+توفر هذه الوحدة نظرة شاملة على أداء النظام، بما في ذلك ملخصات سريعة، رسوم بيانية تحليلية، وسجل لآخر النشاطات.
+
+### 8.1 ملخص الأرقام (Summary)
+- **المسار:** `GET /dashboard/summary` / `api/v1/dashboard/summary` - يرجى استخدام الإصدار V1
+- **الوصف:** يعيد إجماليات سريعة للعملاء، الفواتير، والمواعيد لعرضها في أعلى لوحة التحكم (Cards).
+- **Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "clients": {
+      "total": 150,
+      "this_month": 12,
+      "by_status": [
+        { "status": "جديد", "color": "#FF0000", "count": 45 },
+        { "status": "تم التواصل", "color": "#00FF00", "count": 30 }
+      ]
+    },
+    "invoices": {
+      "total": 50,
+      "total_revenue": 150000.00,
+      "pending": 25000.00,
+      "this_month": 5000.00
+    },
+    "appointments": {
+      "total": 200,
+      "upcoming": 5,
+      "today": 1
+    }
+  }
+}
+```
+
+### 8.2 الرسوم البيانية (Charts)
+- **المسار:** `GET /dashboard/charts`
+- **المعاملات (Query Params):**
+  - `period`: الفترة الزمنية (اختياري). القيم المسموحة: `week`, `month` (Default), `year`.
+- **Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "clients_trend": [
+      { "label": "01", "count": 5 },
+      { "label": "02", "count": 8 }
+    ],
+    "revenue_trend": [
+      { "label": "Jan", "total": 50000 },
+      { "label": "Feb", "total": 65000 }
+    ],
+    "source_distribution": [
+      { "source": "Google Ads", "count": 50 },
+      { "source": "Referral", "count": 20 }
+    ]
+  }
+}
+```
+
+### 8.3 آخر النشاطات (Recent Activities)
+- **المسار:** `GET /dashboard/recent-activities`
+- **الوصف:** يعيد آخر 5 حركات لكل كائن رئيسي في النظام (عملاء، فواتير، مواعيد، تعليقات).
+- **Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "recent_clients": [
+      {
+        "type": "client_created",
+        "message": "عميل جديد: شركة الأفق",
+        "link_id": 101,
+        "status": "active",
+        "color": "#28a745",
+        "created_at": "منذ 2 ساعة"
+      }
+    ],
+    "recent_invoices": [
+      {
+        "type": "invoice_created",
+        "message": "فاتورة INV-001 - شركة الأفق",
+        "link_id": 55,
+        "total": "1,500.00",
+        "status": "paid",
+        "created_at": "منذ 3 ساعات"
+      }
+    ],
+    "upcoming_appointments": [
+      {
+        "type": "upcoming_appointment",
+        "message": "اجتماع عرض فني - شركة الأفق",
+        "link_id": 12,
+        "start_at": "2024-02-20 10:00",
+        "time_until": "بعد يومين"
+      }
+    ],
+    "recent_comments": [
+      {
+        "type": "comment_added",
+        "message": "أحمد قام بالاتصال بـ شركة الأفق",
+        "link_id": 101,
+        "content": "تم الاتفاق على...",
+        "comment_type": "Call",
+        "color": "#blue",
+        "created_at": "منذ 15 دقيقة"
+      }
+    ]
+  }
+}
+```

@@ -98,8 +98,9 @@ class InvoiceController extends Controller
      */
     public function downloadPdf(Invoice $invoice)
     {
-        // TODO: Implement PDF generation using barryvdh/laravel-dompdf
-        return $this->errorResponse('PDF generation not implemented yet', 501);
+        // Require barryvdh/laravel-dompdf
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.invoice', ['invoice' => $invoice->load(['client', 'items.product', 'tags'])]);
+        return $pdf->download("invoice_{$invoice->invoice_number}.pdf");
     }
 
     /**

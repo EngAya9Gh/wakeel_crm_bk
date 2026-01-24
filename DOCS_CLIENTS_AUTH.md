@@ -264,6 +264,7 @@
 
 ### 2.12 جلب التعليقات (Get Comments)
 - **المسار:** `GET /api/v1/clients/{id}/comments`
+- **Params:** `page`, `per_page` (Default: 10).
 - **Success Response (200):**
 ```json
 {
@@ -418,6 +419,143 @@
     "loss_rate": 5.2 // نسبة مئوية
   }
   }
+}
+```
+
+---
+
+### 2.20 فواتير العميل (Client Invoices)
+- **المسار:** `GET /api/v1/clients/{id}/invoices`
+- **Params:** `page`, `per_page`.
+- **Success Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "invoice_number": "INV-100",
+      "total": "5500.00",
+      "status": "unpaid",
+      "created_at": "2024-01-15T10:00:00Z"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 2,
+    "total": 15
+  }
+}
+```
+
+### 2.21 مواعيد العميل (Client Appointments)
+- **المسار:** `GET /api/v1/clients/{id}/appointments`
+- **Params:** `page`, `per_page`.
+- **Success Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 5,
+      "title": "اجتماع عرض فني",
+      "start_at": "2024-02-20 10:00:00",
+      "end_at": "2024-02-20 11:00:00",
+      "status": "scheduled",
+      "user": { "id": 1, "name": "الموظف" }
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 1,
+    "total": 5
+  }
+}
+```
+
+---
+
+## 3. وحدة الإجراءات (Procedures / Tasks)
+
+إجراءات العمل هي مهام يمكن تعيينها وتتبعها لكل عميل (مثل: "اتصال أولي"، "إرسال عرض").
+
+### 3.1 جلب الإجراءات (Get Procedures)
+- **المسار:** `GET /api/v1/clients/{id}/procedures`
+- **Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "تم جلب الإجراءات بنجاح",
+  "data": [
+    {
+      "id": 1,
+      "title": "تواصل أولي",
+      "description": "تم الاتصال والتعريف بالخدمات",
+      "status": "completed",
+      "due_date": null,
+      "completed_at": "2024-01-01 10:00:00",
+      "completed_by": { "id": 5, "name": "أحمد علي" },
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": 2,
+      "title": "إرسال العرض المالي",
+      "description": "بانتظار موافقة العميل على الباقة الأساسية",
+      "status": "pending",
+      "due_date": "2024-01-05 12:00:00",
+      "completed_at": null,
+      "completed_by": null,
+      "created_at": "2024-01-03T09:00:00Z"
+    }
+  ]
+}
+```
+
+### 3.2 إضافة إجراء (Add Procedure)
+- **المسار:** `POST /api/v1/clients/{id}/procedures`
+- **Request Body:**
+```json
+{
+  "title": "تحديد موعد زيارة",
+  "description": "مجدول في 15 يناير",
+  "status": "pending",
+  "due_date": "2024-01-15"
+}
+```
+- **Success Response (201):**
+```json
+{
+  "success": true,
+  "message": "تمت إضافة الإجراء بنجاح",
+  "data": {
+    "id": 3,
+    "title": "تحديد موعد زيارة",
+    "status": "pending"
+  }
+}
+```
+
+### 3.3 تعديل إجراء (Update Procedure)
+- **المسار:** `PUT /api/v1/clients/{clientId}/procedures/{procedureId}`
+- **Request Body:** (الحقول اختيارية)
+```json
+{
+  "title": "عنوان جديد",
+  "description": "وصف جديد",
+  "status": "completed",
+  "due_date": "2024-01-20"
+}
+```
+- **ملاحظة:** عند تغيير `status` إلى `completed`، سيتم تعيين `completed_at` و `completed_by` تلقائياً.
+- **Success Response (200):** يعيد كائن الإجراء المحدث.
+
+### 3.4 حذف إجراء (Delete Procedure)
+- **المسار:** `DELETE /api/v1/clients/{clientId}/procedures/{procedureId}`
+- **Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "تم حذف الإجراء بنجاح"
 }
 ```
 

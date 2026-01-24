@@ -11,6 +11,7 @@ use App\Models\Appointment;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use App\Models\Comment;
 
 class DashboardController extends Controller
 {
@@ -98,6 +99,7 @@ class DashboardController extends Controller
         ]);
     }
 
+
     /**
      * GET /api/v1/dashboard/recent-activities
      * آخر النشاطات
@@ -114,6 +116,7 @@ class DashboardController extends Controller
             ->map(fn($client) => [
                 'type' => 'client_created',
                 'message' => "عميل جديد: {$client->name}",
+                'link_id' => $client->id,
                 'status' => $client->status?->name,
                 'color' => $client->status?->color,
                 'created_at' => $client->created_at->diffForHumans(),
@@ -127,12 +130,13 @@ class DashboardController extends Controller
             ->map(fn($invoice) => [
                 'type' => 'invoice_created',
                 'message' => "فاتورة {$invoice->invoice_number} - {$invoice->client?->name}",
+                'link_id' => $invoice->id,
                 'total' => number_format((float) $invoice->total, 2),
                 'status' => $invoice->status,
                 'created_at' => $invoice->created_at->diffForHumans(),
             ]);
 
-        // آخر المواعيد
+        // آخر المواعيد (القادمة)
         $upcomingAppointments = Appointment::with('client:id,name')
             ->where('status', 'scheduled')
             ->where('start_at', '>=', now())
@@ -142,14 +146,31 @@ class DashboardController extends Controller
             ->map(fn($appointment) => [
                 'type' => 'upcoming_appointment',
                 'message' => "{$appointment->title} - {$appointment->client?->name}",
+                'link_id' => $appointment->id,
                 'start_at' => $appointment->start_at->format('Y-m-d H:i'),
                 'time_until' => $appointment->start_at->diffForHumans(),
+            ]);
+
+        // آخر التعليقات/المتابعات
+        $recentComments = Comment::with(['client:id,name', 'user:id,name', 'type:id,name,color'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(fn($comment) => [
+                'type' => 'comment_added',
+                'message' => "{$comment->user?->name} علق على {$comment->client?->name}",
+                'link_id' => $comment->client_id, // usually link to client
+                'content' => \Illuminate\Support\Str::limit($comment->content, 50),
+                'comment_type' => $comment->type?->name,
+                'color' => $comment->type?->color,
+                'created_at' => $comment->created_at->diffForHumans(),
             ]);
 
         return $this->successResponse([
             'recent_clients' => $recentClients,
             'recent_invoices' => $recentInvoices,
             'upcoming_appointments' => $upcomingAppointments,
+            'recent_comments' => $recentComments,
         ]);
     }
 

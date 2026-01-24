@@ -54,6 +54,16 @@ Route::prefix('v1')->group(function () {
             
             // Timeline
             Route::get('{id}/timeline', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'getTimeline']);
+
+            // Invoices & Appointments
+            Route::get('{id}/invoices', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'getInvoices']);
+            Route::get('{id}/appointments', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'getAppointments']);
+
+            // Procedures (Tasks)
+            Route::get('{id}/procedures', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'getProcedures']);
+            Route::post('{id}/procedures', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'addProcedure']);
+            Route::put('{clientId}/procedures/{procedureId}', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'updateProcedure']);
+            Route::delete('{clientId}/procedures/{procedureId}', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'deleteProcedure']);
         });
 
         // Users Module
