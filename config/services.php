@@ -35,4 +35,17 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Public API Keys
+    |--------------------------------------------------------------------------
+    |
+    | API keys for public endpoints (e.g., website forms integration).
+    | These keys are used to authenticate external services without user login.
+    |
+    */
+    'api_keys' => [
+        'public' => array_filter(explode(',', env('PUBLIC_API_KEYS', ''))),
+    ],
+
 ];

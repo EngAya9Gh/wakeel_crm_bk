@@ -12,7 +12,7 @@ class EloquentClientRepository implements ClientRepositoryInterface
     {
         $query = Client::query()
             ->with(['status', 'assignedTo', 'tags', 'city', 'region'])
-            ->withCount(['comments', 'files', 'invoices', 'appointments']);
+            ->withCount(['comments', 'files', 'invoices', 'appointments', 'procedures']);
 
         // Apply Filters
         if (!empty($filters['status_id'])) {
@@ -77,7 +77,7 @@ class EloquentClientRepository implements ClientRepositoryInterface
             'status', 'source', 'behavior', 'invalidReason',
             'region', 'city', 'assignedTo', 'tags'
         ])
-        ->withCount(['comments', 'files', 'invoices', 'appointments'])
+        ->withCount(['comments', 'files', 'invoices', 'appointments', 'procedures'])
         ->findOrFail($id);
     }
 

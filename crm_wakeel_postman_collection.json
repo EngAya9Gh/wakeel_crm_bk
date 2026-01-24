@@ -93,6 +93,120 @@
             ]
         },
         {
+            "name": "Public API (Website Forms)",
+            "description": "Public endpoints for external website forms integration. Requires API Key authentication.",
+            "item": [
+                {
+                    "name": "Submit Lead (Contact Form)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "X-API-Key",
+                                "value": "{{public_api_key}}",
+                                "type": "text",
+                                "description": "API Key for authentication"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"أحمد محمد علي\",\n    \"phone\": \"0501234567\",\n    \"email\": \"ahmed@example.com\",\n    \"subject\": \"استفسار عن الخدمات\",\n    \"message\": \"أرغب في معرفة المزيد عن خدماتكم\",\n    \"source\": \"contact_form\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/public/v1/leads",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "public",
+                                "v1",
+                                "leads"
+                            ]
+                        },
+                        "description": "Submit a new lead from contact form. This endpoint does not require user authentication, only a valid API Key."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Submit Lead (Landing Page)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "X-API-Key",
+                                "value": "{{public_api_key}}",
+                                "type": "text",
+                                "description": "API Key for authentication"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"سارة أحمد\",\n    \"phone\": \"+966509876543\",\n    \"email\": \"sara@company.com\",\n    \"company\": \"شركة النجاح\",\n    \"address\": \"الرياض - حي النخيل\",\n    \"source\": \"landing_page\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/public/v1/leads",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "public",
+                                "v1",
+                                "leads"
+                            ]
+                        },
+                        "description": "Submit a new lead from landing page. This endpoint does not require user authentication, only a valid API Key."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Submit Lead (Minimal Data)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "X-API-Key",
+                                "value": "{{public_api_key}}",
+                                "type": "text",
+                                "description": "API Key for authentication"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"محمد خالد\",\n    \"phone\": \"0551234567\",\n    \"source\": \"website_form\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/public/v1/leads",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "public",
+                                "v1",
+                                "leads"
+                            ]
+                        },
+                        "description": "Submit a new lead with minimal required data (name, phone, source only)."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
             "name": "Clients",
             "item": [
                 {
