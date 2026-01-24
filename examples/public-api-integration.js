@@ -230,30 +230,20 @@ function displayValidationErrors(errors) {
 }
 
 /**
- * Validate phone number format (Saudi)
+ * Validate phone number format (Basic)
  */
-function validateSaudiPhone(phone) {
-    const regex = /^(\+966|00966|966|05)[0-9]{8,9}$/;
-    return regex.test(phone.replace(/[\s\-\(\)]/g, ''));
+function validatePhone(phone) {
+    // Basic validation: at least 7 digits
+    const cleaned = phone.replace(/[^\d+]/g, '');
+    return cleaned.length >= 7 && cleaned.length <= 20;
 }
 
 /**
- * Format phone number to international format
+ * Clean phone number
  */
-function formatPhoneNumber(phone) {
-    // Remove spaces, dashes, parentheses
-    phone = phone.replace(/[\s\-\(\)]/g, '');
-
-    // Convert to +966 format
-    if (phone.startsWith('00966')) {
-        return '+966' + phone.substring(5);
-    } else if (phone.startsWith('966')) {
-        return '+966' + phone.substring(3);
-    } else if (phone.startsWith('05')) {
-        return '+966' + phone.substring(1);
-    }
-
-    return phone;
+function cleanPhoneNumber(phone) {
+    // Remove everything except digits and plus sign
+    return phone.replace(/[^\d+]/g, '');
 }
 
 // ============================================================================
@@ -391,7 +381,7 @@ const ContactFormComponent = {
 
 // Example 3: With phone validation
 // const phone = document.querySelector('#phone').value;
-// if (validateSaudiPhone(phone)) {
-//     const formattedPhone = formatPhoneNumber(phone);
-//     // Submit with formatted phone
+// if (validatePhone(phone)) {
+//     const cleanedPhone = cleanPhoneNumber(phone);
+//     // Submit with cleaned phone
 // }

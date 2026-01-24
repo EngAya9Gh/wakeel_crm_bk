@@ -7,10 +7,9 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 // =====================================================================
 // PUBLIC API ROUTES (No User Authentication - API Key Only)
 // =====================================================================
-Route::prefix('public/v1')->middleware(['api.key', 'throttle:60,1', 'log.api.requests'])->group(function () {
+Route::prefix('public/v1')->middleware(['api.key', 'throttle:60,1'])->group(function () {
     // Lead Submission from Website Forms
     // Rate Limit: 60 requests per minute per API key
-    // All requests are logged to api_logs table
     Route::post('leads', [\App\Http\Controllers\Api\Public\LeadController::class, 'store']);
 });
 

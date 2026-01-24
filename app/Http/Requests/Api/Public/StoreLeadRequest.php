@@ -34,7 +34,8 @@ class StoreLeadRequest extends FormRequest
             'phone' => [
                 'required',
                 'string',
-                'regex:/^(\+966|00966|966|05)[0-9]{8,9}$/', // Saudi phone format
+                'min:7',
+                'max:20',
                 // Note: Duplicate phone numbers are allowed - customers can register multiple times
             ],
             
@@ -68,8 +69,9 @@ class StoreLeadRequest extends FormRequest
             'name.min' => 'الاسم يجب أن يكون 3 أحرف على الأقل',
             'name.max' => 'الاسم يجب ألا يتجاوز 255 حرف',
             
-            'phone.required' => 'رقم الجوال مطلوب',
-            'phone.regex' => 'رقم الجوال غير صحيح. يجب أن يبدأ بـ 05 أو +966',
+            'phone.required' => 'رقم الهاتف مطلوب',
+            'phone.min' => 'رقم الهاتف يجب أن يكون 7 أرقام على الأقل',
+            'phone.max' => 'رقم الهاتف يجب ألا يتجاوز 20 رقماً',
             
             'email.email' => 'البريد الإلكتروني غير صحيح',
             'email.max' => 'البريد الإلكتروني يجب ألا يتجاوز 255 حرف',
@@ -106,25 +108,14 @@ class StoreLeadRequest extends FormRequest
     
     /**
      * Prepare the data for validation.
-     * 
-     * Normalize phone number format
      */
     protected function prepareForValidation()
     {
         if ($this->has('phone')) {
             $phone = $this->phone;
             
-            // Remove spaces, dashes, and parentheses
-            $phone = preg_replace('/[\s\-\(\)]/', '', $phone);
-            
-            // Normalize to +966 format
-            if (str_starts_with($phone, '00966')) {
-                $phone = '+966' . substr($phone, 5);
-            } elseif (str_starts_with($phone, '966')) {
-                $phone = '+966' . substr($phone, 3);
-            } elseif (str_starts_with($phone, '05')) {
-                $phone = '+966' . substr($phone, 1);
-            }
+            // Remove spaces, dashes, and parentheses but keep the plus sign if it exists
+            $phone = preg_replace('/[^\d+]/', '', $phone);
             
             $this->merge(['phone' => $phone]);
         }
