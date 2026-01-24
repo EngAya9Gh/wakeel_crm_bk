@@ -189,7 +189,8 @@
     "invoices_count": 1,
     "appointments_count": 3,
     "first_contact_at": "2024-01-01 10:00",
-    "converted_at": null
+    "converted_at": null,
+    "procedures_count":9
     // ... تفاصيل الحقول كاملة
   }
 }

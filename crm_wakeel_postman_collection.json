@@ -333,7 +333,7 @@
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "{{base_url}}/clients/1/comments",
+                            "raw": "{{base_url}}/clients/1/comments?page=1&per_page=10",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -341,6 +341,16 @@
                                 "clients",
                                 "1",
                                 "comments"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "10"
+                                }
                             ]
                         }
                     },
@@ -398,6 +408,145 @@
                         }
                     },
                     "response": []
+                },
+                {
+                    "name": "Get Client Invoices",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/clients/1/invoices",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "clients",
+                                "1",
+                                "invoices"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Client Appointments",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/clients/1/appointments",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "clients",
+                                "1",
+                                "appointments"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Procedures",
+                    "item": [
+                        {
+                            "name": "List Procedures",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/clients/1/procedures",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "clients",
+                                        "1",
+                                        "procedures"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Procedure",
+                            "request": {
+                                "method": "POST",
+                                "header": [],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"title\": \"Initial Call\",\n    \"description\": \"Call to discuss basic requirements\",\n    \"status\": \"pending\",\n    \"due_date\": \"2024-02-01\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/clients/1/procedures",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "clients",
+                                        "1",
+                                        "procedures"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Update Procedure",
+                            "request": {
+                                "method": "PUT",
+                                "header": [],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"status\": \"completed\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/clients/1/procedures/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "clients",
+                                        "1",
+                                        "procedures",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Delete Procedure",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/clients/1/procedures/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "clients",
+                                        "1",
+                                        "procedures",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        }
+                    ]
                 },
                 {
                     "name": "Stats",
@@ -510,6 +659,53 @@
                         }
                     },
                     "response": []
+                },
+                {
+                    "name": "Download PDF",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/invoices/1/pdf",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "invoices",
+                                "1",
+                                "pdf"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Send Invoice",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"channels\": [\"whatsapp\", \"sms\"]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/invoices/1/send",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "invoices",
+                                "1",
+                                "send"
+                            ]
+                        }
+                    },
+                    "response": []
                 }
             ]
         },
@@ -610,24 +806,6 @@
                     "response": []
                 },
                 {
-                    "name": "Get Sources",
-                    "request": {
-                        "method": "GET",
-                        "header": [],
-                        "url": {
-                            "raw": "{{base_url}}/settings/sources",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "settings",
-                                "sources"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
                     "name": "Get Permissions",
                     "request": {
                         "method": "GET",
@@ -691,6 +869,24 @@
                         }
                     },
                     "response": []
+                },
+                {
+                    "name": "Recent Activities",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/recent-activities",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "dashboard",
+                                "recent-activities"
+                            ]
+                        }
+                    },
+                    "response": []
                 }
             ]
         }
@@ -705,26 +901,6 @@
             }
         ]
     },
-    "event": [
-        {
-            "listen": "prerequest",
-            "script": {
-                "type": "text/javascript",
-                "exec": [
-                    ""
-                ]
-            }
-        },
-        {
-            "listen": "test",
-            "script": {
-                "type": "text/javascript",
-                "exec": [
-                    ""
-                ]
-            }
-        }
-    ],
     "variable": [
         {
             "key": "base_url",

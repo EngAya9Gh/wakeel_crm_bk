@@ -65,6 +65,7 @@ class ClientDetailResource extends JsonResource
             'files_count' => $this->files_count ?? $this->files->count(),
             'invoices_count' => $this->invoices_count ?? $this->invoices->count(),
             'appointments_count' => $this->appointments_count ?? $this->appointments->count(),
+            'procedures_count' => $this->procedures_count ?? $this->procedures->count(),
             
             // Timestamps
             'created_at' => $this->created_at->format('Y-m-d H:i'),
