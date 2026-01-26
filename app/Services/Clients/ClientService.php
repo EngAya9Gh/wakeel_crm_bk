@@ -27,6 +27,11 @@ class ClientService
         return $this->clientRepository->findById($id);
     }
 
+    public function getDropdownList(string $search = null, int $perPage = 15)
+    {
+        return $this->clientRepository->getDropdownList($search, $perPage);
+    }
+
     public function createClient(array $data)
     {
         $data['first_contact_at'] = now();

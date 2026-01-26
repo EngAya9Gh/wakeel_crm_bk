@@ -15,4 +15,5 @@ interface ClientRepositoryInterface
     public function bulkDelete(array $clientIds);
     public function getStats(array $filters = []);
     public function getKpis(array $filters = []);
+    public function getDropdownList(string $search = null, int $perPage = 15);
 }

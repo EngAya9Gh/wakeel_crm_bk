@@ -45,6 +45,7 @@ Route::prefix('v1')->group(function () {
             Route::delete('bulk', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'bulkDelete']);
             
             // CRUD
+            Route::get('list', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'list']);
             Route::get('/', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'index']);
             Route::post('/', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'store']);
             Route::get('{id}', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'show']);

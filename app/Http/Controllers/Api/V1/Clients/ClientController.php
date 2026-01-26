@@ -47,6 +47,19 @@ class ClientController extends Controller
     }
 
     /**
+     * GET /api/v1/clients/list
+     * قائمة مختصرة للعملاء (Dropdown)
+     */
+    public function list(Request $request)
+    {
+        $search = $request->input('search');
+        $perPage = $request->input('per_page', 15);
+        $clients = $this->clientService->getDropdownList($search, $perPage);
+
+        return $this->paginatedResponse($clients, 'تم جلب القائمة بنجاح');
+    }
+
+    /**
      * GET /api/v1/clients/{id}
      * تفاصيل عميل
      */

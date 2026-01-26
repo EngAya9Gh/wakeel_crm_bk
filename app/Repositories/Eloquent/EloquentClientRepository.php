@@ -250,4 +250,20 @@ class EloquentClientRepository implements ClientRepositoryInterface
             'avg_conversion_days' => round((float)$avg_conversion_days, 1),
         ];
     }
+
+    public function getDropdownList(string $search = null, int $perPage = 15)
+    {
+        $query = Client::query()->select('id', 'name');
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('email', 'like', '%' . $search . '%')
+                  ->orWhere('phone', 'like', '%' . $search . '%')
+                  ->orWhere('company', 'like', '%' . $search . '%');
+            });
+        }
+
+        return $query->orderBy('name', 'asc')->paginate($perPage);
+    }
 }
