@@ -36,7 +36,7 @@ class CommentResource extends JsonResource
             'attachments' => $this->attachments->map(fn($f) => [
                 'id' => $f->id,
                 'name' => $f->name,
-                'url' => Storage::url($f->path),
+                'url' => $f->url, // Uses accessor
                 'type' => $f->type,
             ]),
             'created_at' => $this->created_at->format('Y-m-d H:i'),
