@@ -11,7 +11,7 @@ class UploadFileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => 'required|file|max:10240', // 10MB
+            'file' => 'required|file|mimes:jpg,jpeg,png,webp,pdf,doc,docx,xls,xlsx|max:10240', // 10MB
             'type' => 'required|in:contract,identity,document,image',
         ];
     }
