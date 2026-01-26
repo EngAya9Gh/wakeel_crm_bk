@@ -318,7 +318,7 @@
 
 ### 2.13 إضافة تعليق غني (Add Comment)
 - **المسار:** `POST /api/v1/clients/{id}/comments`
-- **Request (Multipart):** `type_id`, `content`, `outcome` (Optional), `mentions[]`, `attachments[]`.
+- **Request (Multipart):** `type_id`, `content`, `subject` (Optional), `outcome` (Optional), `next_follow_up` (Optional - Date), `mentions[]`, `attachments[]`.
 - **Success Response (201):** يعيد كائن التعليق المنشأ كما في هيكلية (Get Comments).
 
 ### 2.14 جلب ملفات العميل (Get Files)

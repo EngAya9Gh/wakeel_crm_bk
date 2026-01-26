@@ -9,7 +9,7 @@ class Comment extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['client_id', 'user_id', 'type_id', 'content', 'subject', 'outcome'];
+    protected $fillable = ['client_id', 'user_id', 'type_id', 'content', 'subject', 'outcome', 'next_follow_up'];
 
     public function user()
     {

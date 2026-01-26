@@ -123,6 +123,7 @@ class ClientService
                 'subject' => $data['subject'] ?? null,
                 'content' => $data['content'],
                 'outcome' => $data['outcome'] ?? 'neutral',
+                'next_follow_up' => $data['next_follow_up'] ?? null,
             ]);
 
             // Handle Mentions

@@ -24,6 +24,7 @@ class CommentResource extends JsonResource
             'subject' => $this->subject,
             'content' => $this->content,
             'outcome' => $this->outcome,
+            'next_follow_up' => $this->next_follow_up ? $this->next_follow_up->format('Y-m-d H:i') : null,
             'user' => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,

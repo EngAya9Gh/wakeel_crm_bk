@@ -15,6 +15,7 @@ class AddCommentRequest extends FormRequest
             'subject' => 'nullable|string|max:255',
             'content' => 'required|string',
             'outcome' => 'nullable|in:positive,neutral,negative',
+            'next_follow_up' => 'nullable|date',
             'mentions' => 'nullable|array',
             'mentions.*' => 'exists:users,id',
             'attachments' => 'nullable|array',
