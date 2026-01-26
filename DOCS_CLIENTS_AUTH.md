@@ -343,7 +343,7 @@
 
 ### 2.15 رفع ملف مستقل (Upload File)
 - **المسار:** `POST /api/v1/clients/{id}/files`
-- **Request (Multipart):** `file`, `type` (image, document, audio).
+- **Request (Multipart):** `file` (jpg, jpeg, png, webp, pdf, doc, docx, xls, xlsx), `type` (contract, identity, document, image).
 - **Success Response (201):** يعيد كائن الملف المرفوع بنفس هيكلية (Get Files).
 
 ### 2.16 تصدير ملف العميل (Download PDF)

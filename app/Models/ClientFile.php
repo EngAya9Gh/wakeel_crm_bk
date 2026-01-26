@@ -21,6 +21,13 @@ class ClientFile extends Model
         return $this->belongsTo(Client::class);
     }
 
+    protected $appends = ['url'];
+
+    public function getUrlAttribute()
+    {
+        return asset('storage/' . $this->path);
+    }
+
     public function comment()
     {
         return $this->belongsTo(Comment::class);

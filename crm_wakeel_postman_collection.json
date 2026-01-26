@@ -663,6 +663,60 @@
                     ]
                 },
                 {
+                    "name": "Upload File",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": null
+                                },
+                                {
+                                    "key": "type",
+                                    "value": "document",
+                                    "type": "text",
+                                    "description": "contract, identity, document, image"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/clients/1/files",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "clients",
+                                "1",
+                                "files"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Files",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/clients/1/files",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "clients",
+                                "1",
+                                "files"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
                     "name": "Stats",
                     "request": {
                         "method": "GET",
