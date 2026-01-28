@@ -4,7 +4,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>فاتورة #{{ $invoice->invoice_number }}</title>
     <style>
-        body { font-family: 'DejaVu Sans', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+        body { font-family: 'Tajawal', sans-serif; }
         table { width: 100%; border-collapse: collapse; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
         .header { text-align: center; margin-bottom: 20px; }
