@@ -37,7 +37,12 @@ class AppointmentService
         }
 
         if (!empty($filters['date_to'])) {
-            $query->where('start_at', '<=', $filters['date_to']);
+            $dateTo = $filters['date_to'];
+            // If it's just a date (Y-m-d), include the entire day
+            if (strlen($dateTo) === 10) {
+                $dateTo .= ' 23:59:59';
+            }
+            $query->where('start_at', '<=', $dateTo);
         }
 
         // Sorting
