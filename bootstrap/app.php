@@ -19,6 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'api.key' => \App\Http\Middleware\ValidateApiKey::class,
         ]);
+
+        // Fix for "Route [login] not defined" error
+        // When unauthenticated users access API endpoints (like PDF download via browser), 
+        // Laravel tries to redirect to 'login'. preventing this ensures we fall through to the exception handler.
+        $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, \Illuminate\Http\Request $request) {
