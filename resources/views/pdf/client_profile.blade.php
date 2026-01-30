@@ -15,35 +15,35 @@
 </head>
 <body>
     <div class="header">
-        <h1>ملف العميل: {{ $client->name }}</h1>
-        <p>تاريخ التقرير: {{ now()->format('Y-m-d') }}</p>
+        <h1>@ar('ملف العميل'): @ar($client->name)</h1>
+        <p>@ar('تاريخ التقرير'): {{ now()->format('Y-m-d') }}</p>
     </div>
 
     <div class="section">
-        <h3>معلومات أساسية</h3>
-        <p><span class="label">البريد الإلكتروني:</span> {{ $client->email }}</p>
-        <p><span class="label">الجوال:</span> {{ $client->phone }}</p>
-        <p><span class="label">الحالة:</span> {{ $client->status->name ?? 'غير محدد' }}</p>
-        <p><span class="label">المدينة:</span> {{ $client->city->name ?? 'غير محدد' }}</p>
+        <h3>@ar('معلومات أساسية')</h3>
+        <p><span class="label">@ar('البريد الإلكتروني'):</span> {{ $client->email }}</p>
+        <p><span class="label">@ar('الجوال'):</span> {{ $client->phone }}</p>
+        <p><span class="label">@ar('الحالة'):</span> @ar($client->status->name ?? 'غير محدد')</p>
+        <p><span class="label">@ar('المدينة'):</span> @ar($client->city->name ?? 'غير محدد')</p>
     </div>
 
     <div class="section">
-        <h3>آخر التعليقات</h3>
+        <h3>@ar('آخر التعليقات')</h3>
         <table>
             <thead>
                 <tr>
-                    <th>المستخدم</th>
-                    <th>النوع</th>
-                    <th>المحتوى</th>
-                    <th>التاريخ</th>
+                    <th>@ar('المستخدم')</th>
+                    <th>@ar('النوع')</th>
+                    <th>@ar('المحتوى')</th>
+                    <th>@ar('التاريخ')</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($client->comments()->take(5)->get() as $comment)
                 <tr>
-                    <td>{{ $comment->user->name ?? '' }}</td>
-                    <td>{{ $comment->type->name ?? '' }}</td>
-                    <td>{{ Str::limit($comment->content, 50) }}</td>
+                    <td>@ar($comment->user->name ?? '')</td>
+                    <td>@ar($comment->type->name ?? '')</td>
+                    <td>@ar(Str::limit($comment->content, 50))</td>
                     <td>{{ $comment->created_at->format('Y-m-d') }}</td>
                 </tr>
                 @endforeach

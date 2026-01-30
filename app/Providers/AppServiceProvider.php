@@ -19,6 +19,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Blade directive to fix Arabic text for PDF
+        \Illuminate\Support\Facades\Blade::directive('ar', function ($expression) {
+            return "<?php echo (new \ArPHP\I18N\Arabic('Glyphs'))->utf8Glyphs($expression); ?>";
+        });
     }
 }
