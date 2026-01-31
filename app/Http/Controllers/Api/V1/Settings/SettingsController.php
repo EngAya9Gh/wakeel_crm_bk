@@ -336,6 +336,7 @@ class SettingsController extends Controller
     {
         $team = Team::create($request->validate([
             'name' => 'required|string|max:255',
+            'category' => 'required|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean'
         ]));
@@ -347,6 +348,7 @@ class SettingsController extends Controller
         $team = Team::findOrFail($id);
         $team->update($request->validate([
             'name' => 'sometimes|required|string|max:255',
+            'category' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean'
         ]));
