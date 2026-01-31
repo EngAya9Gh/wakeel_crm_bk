@@ -7,6 +7,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Auth\Events\PasswordReset;
+
 class AuthController extends Controller
 {
     use \App\Traits\ApiResponse;
@@ -62,5 +66,42 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         return $this->successResponse($request->user()->load(['team', 'role.permissions']));
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+    
+        $status = Password::sendResetLink($request->only('email'));
+    
+        return $status === Password::RESET_LINK_SENT
+            ? $this->successResponse(null, __($status))
+            : $this->errorResponse(__($status), 400);
+    }
+    
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|confirmed|min:8',
+        ]);
+    
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => $password
+                ])->setRememberToken(Str::random(60));
+    
+                $user->save();
+    
+                event(new PasswordReset($user));
+            }
+        );
+    
+        return $status === Password::PASSWORD_RESET
+            ? $this->successResponse(null, __($status))
+            : $this->errorResponse(__($status), 400);
     }
 }

@@ -19,6 +19,8 @@ Route::prefix('public/v1')->middleware(['api.key', 'throttle:60,1'])->group(func
 Route::prefix('v1')->group(function () {
     // Auth Routes
     Route::post('auth/login', [AuthController::class, 'login']);
+    Route::post('auth/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('auth/reset-password', [AuthController::class, 'resetPassword']);
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);
         Route::post('auth/refresh', [AuthController::class, 'refresh']); // User must provide Refresh Token

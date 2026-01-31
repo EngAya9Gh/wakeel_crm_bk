@@ -80,6 +80,41 @@
 }
 ```
 
+### 1.5 نسيت كلمة المرور (Forgot Password)
+- **المسار:** `POST /api/v1/auth/forgot-password`
+- **Request Body:**
+```json
+{
+  "email": "user@example.com"
+}
+```
+- **Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "We have emailed your password reset link."
+}
+```
+
+### 1.6 إعادة تعيين كلمة المرور (Reset Password)
+- **المسار:** `POST /api/v1/auth/reset-password`
+- **Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "new_password",
+  "password_confirmation": "new_password",
+  "token": "token_received_in_email"
+}
+```
+- **Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Your password has been reset."
+}
+```
+
 ---
 
 ## 2. وحدة العملاء (Clients Module)
