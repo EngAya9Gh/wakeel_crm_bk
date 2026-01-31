@@ -15,14 +15,14 @@
 <body>
     <div class="header">
         <h1>@ar('فاتورة ضريبية')</h1>
-        <p>@ar('رقم الفاتورة'): {{ $invoice->invoice_number }}</p>
-        <p>@ar('التاريخ'): {{ $invoice->created_at->format('Y-m-d') }}</p>
+        <p>{{ $invoice->invoice_number }} :@ar('رقم الفاتورة')</p>
+        <p>{{ $invoice->created_at->format('Y-m-d') }} :@ar('التاريخ')</p>
     </div>
 
     <div class="client-info">
-        <h3>@ar('بيانات العميل'):</h3>
-        <p>@ar('الاسم'): @ar($invoice->client->name)</p>
-        <p>@ar('الهاتف'): {{ $invoice->client->phone }}</p>
+        <h3>:@ar('بيانات العميل')</h3>
+        <p>@ar($invoice->client->name) :@ar('الاسم')</p>
+        <p>{{ $invoice->client->phone }} :@ar('الهاتف')</p>
     </div>
 
     <h3>@ar('التفاصيل'):</h3>

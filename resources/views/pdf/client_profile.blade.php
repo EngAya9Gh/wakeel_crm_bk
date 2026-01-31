@@ -21,10 +21,10 @@
 
     <div class="section">
         <h3>@ar('معلومات أساسية')</h3>
-        <p><span class="label">@ar('البريد الإلكتروني'):</span> {{ $client->email }}</p>
-        <p><span class="label">@ar('الجوال'):</span> {{ $client->phone }}</p>
-        <p><span class="label">@ar('الحالة'):</span> @ar($client->status->name ?? 'غير محدد')</p>
-        <p><span class="label">@ar('المدينة'):</span> @ar($client->city->name ?? 'غير محدد')</p>
+        <p>{{ $client->email }} <span class="label">:@ar('البريد الإلكتروني')</span></p>
+        <p>{{ $client->phone }} <span class="label">:@ar('الجوال')</span></p>
+        <p>@ar($client->status->name ?? 'غير محدد') <span class="label">:@ar('الحالة')</span></p>
+        <p>@ar($client->city->name ?? 'غير محدد') <span class="label">:@ar('المدينة')</span></p>
     </div>
 
     <div class="section">
