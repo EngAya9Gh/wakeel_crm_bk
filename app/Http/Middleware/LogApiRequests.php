@@ -43,7 +43,14 @@ class LogApiRequests
     protected function logRequest(Request $request, Response $response, float $responseTime): void
     {
         try {
-            $responseData = json_decode($response->getContent(), true);
+            // Handle StreamedResponse/BinaryFileResponse where getContent() is false/empty
+            if ($response instanceof \Symfony\Component\HttpFoundation\StreamedResponse || 
+                $response instanceof \Symfony\Component\HttpFoundation\BinaryFileResponse) {
+                $responseData = ['message' => 'Binary/Streamed Content Omitted'];
+            } else {
+                $content = $response->getContent();
+                $responseData = $content ? json_decode($content, true) : [];
+            }
             $requestData = $request->all();
             
             // Mask sensitive data

@@ -296,6 +296,7 @@ class ClientService
 
         $callback = function () use ($clients) {
             $file = fopen('php://output', 'w');
+            
             // Add BOM for Excel UTF-8 compatibility
             fputs($file, "\xEF\xBB\xBF"); 
             
