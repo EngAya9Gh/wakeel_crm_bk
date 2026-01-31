@@ -39,6 +39,8 @@ class InvoiceResource extends JsonResource
             'tax_amount' => number_format((float) $this->tax_amount, 2, '.', ''),
             'discount' => number_format((float) $this->discount, 2, '.', ''),
             'total' => number_format((float) $this->total, 2, '.', ''),
+            'paid_amount' => number_format((float) $this->paid_amount, 2, '.', ''),
+            'remaining_amount' => number_format((float) $this->remaining_amount, 2, '.', ''),
             
             // Dates
             'due_date' => $this->due_date?->format('Y-m-d'),
@@ -69,6 +71,8 @@ class InvoiceResource extends JsonResource
             
             'created_at' => $this->created_at->format('Y-m-d H:i'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i'),
+            
+            'payments' => PaymentResource::collection($this->whenLoaded('payments')),
         ];
     }
 }

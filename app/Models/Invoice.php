@@ -51,8 +51,23 @@ class Invoice extends Model
         return $this->hasMany(InvoiceItem::class);
     }
 
+    public function payments()
+    {
+        return $this->hasMany(InvoicePayment::class);
+    }
+
     public function tags()
     {
         return $this->belongsToMany(InvoiceTag::class, 'invoice_tag', 'invoice_id', 'tag_id');
+    }
+
+    public function getPaidAmountAttribute()
+    {
+        return $this->payments()->sum('amount');
+    }
+
+    public function getRemainingAmountAttribute()
+    {
+        return max(0, $this->total - $this->paid_amount);
     }
 }

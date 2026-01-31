@@ -173,6 +173,58 @@
 - **المسار:** `GET /api/v1/invoices/{id}/pdf`
 - **Status:** يقوم بتحميل ملف الفاتورة بصيغة PDF مباشرة (Content-Type: application/pdf).
 
+### 1.9 دفعات الفاتورة (Invoice Payments)
+
+#### 1.9.1 إضافة دفعة (Add Payment)
+- **المسار:** `POST /api/v1/invoices/{id}/payments`
+- **Request Body:**
+```json
+{
+  "amount": 500,
+  "payment_method": "bank_transfer", // cash, bank_transfer, card, cheque
+  "payment_date": "2024-02-05",
+  "reference": "TRX-123456", // Optional
+  "notes": "دفعة مقدمة" // Optional
+}
+```
+- **Success Response (201):**
+```json
+{
+  "success": true,
+  "message": "تم إضافة الدفعة بنجاح",
+  "data": {
+    "id": 1,
+    "amount": "500.00",
+    "payment_method": "bank_transfer",
+    "payment_date": "2024-02-05",
+    "reference": "TRX-123456",
+    "notes": "دفعة مقدمة",
+    "user": { "id": 1, "name": "Admin" },
+    "created_at": "2024-02-05 10:00"
+  }
+}
+```
+
+#### 1.9.2 قائمة الدفعات (List Payments)
+- **المسار:** `GET /api/v1/invoices/{id}/payments`
+- **Success Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    // Array of Payment Objects
+  ]
+}
+```
+
+#### 1.9.3 تعديل دفعة (Update Payment)
+- **المسار:** `PUT /api/v1/invoices/{id}/payments/{payment_id}`
+- **Request Body:** نفس حقول الإضافة.
+
+#### 1.9.4 حذف دفعة (Delete Payment)
+- **المسار:** `DELETE /api/v1/invoices/{id}/payments/{payment_id}`
+
+
 ---
 
 ## 2. وحدة المواعيد (Appointments Module)
