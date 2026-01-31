@@ -137,5 +137,9 @@ class DemoDataSeeder extends Seeder
         }
 
         echo "✅ Demo Data Seeded Successfully!\n";
+        
+        $this->call([
+            InvoicePaymentsSeeder::class,
+        ]);
     }
 }
