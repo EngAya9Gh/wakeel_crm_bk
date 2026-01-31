@@ -334,24 +334,37 @@ class SettingsController extends Controller
 
     public function storeTeam(Request $request)
     {
-        $team = Team::create($request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'category' => 'required|string|max:255',
+            'category' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean'
-        ]));
+        ]);
+
+        if (empty($validated['category'])) {
+            $validated['category'] = 'general';
+        }
+
+        $team = Team::create($validated);
         return $this->createdResponse($team);
     }
 
     public function updateTeam(Request $request, int $id)
     {
         $team = Team::findOrFail($id);
-        $team->update($request->validate([
+        
+        $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'category' => 'sometimes|required|string|max:255',
+            'category' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean'
-        ]));
+        ]);
+
+        if ($request->has('category') && empty($validated['category'])) {
+             $validated['category'] = 'general';
+        }
+
+        $team->update($validated);
         return $this->successResponse($team);
     }
 
