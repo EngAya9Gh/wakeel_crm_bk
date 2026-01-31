@@ -5,11 +5,11 @@
     <title>فاتورة #{{ $invoice->invoice_number }}</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
-        body { font-family: 'Tajawal', sans-serif; }
-        table { width: 100%; border-collapse: collapse; }
+        body { font-family: 'Tajawal', sans-serif; direction: rtl; text-align: right; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
         .header { text-align: center; margin-bottom: 20px; }
-        .total { font-weight: bold; }
+        .total { font-weight: bold; text-align: left; } /* Total label usually on left if amount is on right, or vice versa depending on layout preference. User said "texts on left", likely meant the whole page alignment */
     </style>
 </head>
 <body>
@@ -30,8 +30,8 @@
         <thead>
             <tr>
                 <th>@ar('المنتج/الخدمة')</th>
-                <th>@ar('السعر')</th>
                 <th>@ar('الكمية')</th>
+                <th>@ar('السعر')</th>
                 <th>@ar('المجموع')</th>
             </tr>
         </thead>
@@ -39,8 +39,8 @@
             @foreach($invoice->items as $item)
             <tr>
                 <td>@ar($item->product->name ?? 'منتج')</td>
-                <td>{{ number_format($item->price, 2) }}</td>
                 <td>{{ $item->quantity }}</td>
+                <td>{{ number_format($item->price, 2) }}</td>
                 <td>{{ number_format($item->price * $item->quantity, 2) }}</td>
             </tr>
             @endforeach
@@ -48,7 +48,7 @@
         <tfoot>
             <tr>
                 <td colspan="3" class="total">@ar('المجموع الكلي')</td>
-                <td class="total">{{ number_format($invoice->total, 2) }}</td>
+                <td>{{ number_format($invoice->total, 2) }}</td>
             </tr>
         </tfoot>
     </table>
