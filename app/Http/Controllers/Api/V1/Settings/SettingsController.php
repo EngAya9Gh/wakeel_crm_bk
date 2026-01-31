@@ -419,6 +419,6 @@ class SettingsController extends Controller
 
     public function getPermissions()
     {
-        return $this->successResponse(Permission::get(['id', 'name', 'display_name', 'category']));
+        return $this->successResponse(Permission::get(['id', 'name', 'display_name', 'group']));
     }
 }
