@@ -25,30 +25,30 @@
         <p>{{ $invoice->client->phone }} :@ar('الهاتف')</p>
     </div>
 
-    <h3>@ar('التفاصيل'):</h3>
+    <h3>:@ar('التفاصيل')</h3>
     <table>
         <thead>
             <tr>
-                <th>@ar('المنتج/الخدمة')</th>
-                <th>@ar('الكمية')</th>
-                <th>@ar('السعر')</th>
                 <th>@ar('المجموع')</th>
+                <th>@ar('السعر')</th>
+                <th>@ar('الكمية')</th>
+                <th>@ar('المنتج/الخدمة')</th>
             </tr>
         </thead>
         <tbody>
             @foreach($invoice->items as $item)
             <tr>
-                <td>@ar($item->product->name ?? 'منتج')</td>
-                <td>{{ $item->quantity }}</td>
-                <td>{{ number_format($item->price, 2) }}</td>
                 <td>{{ number_format($item->price * $item->quantity, 2) }}</td>
+                <td>{{ number_format($item->price, 2) }}</td>
+                <td>{{ $item->quantity }}</td>
+                <td>@ar($item->product->name ?? 'منتج')</td>
             </tr>
             @endforeach
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="3" class="total">@ar('المجموع الكلي')</td>
-                <td>{{ number_format($invoice->total, 2) }}</td>
+                <td class="total">{{ number_format($invoice->total, 2) }}</td>
+                <td colspan="3" class="total">:@ar('المجموع الكلي')</td>
             </tr>
         </tfoot>
     </table>

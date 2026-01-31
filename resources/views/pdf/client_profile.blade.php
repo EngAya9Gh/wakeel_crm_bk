@@ -32,19 +32,19 @@
         <table>
             <thead>
                 <tr>
-                    <th>@ar('المستخدم')</th>
-                    <th>@ar('النوع')</th>
-                    <th>@ar('المحتوى')</th>
                     <th>@ar('التاريخ')</th>
+                    <th>@ar('المحتوى')</th>
+                    <th>@ar('النوع')</th>
+                    <th>@ar('المستخدم')</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($client->comments()->take(5)->get() as $comment)
                 <tr>
-                    <td>@ar($comment->user->name ?? '')</td>
-                    <td>@ar($comment->type->name ?? '')</td>
-                    <td>@ar(Str::limit($comment->content, 50))</td>
                     <td>{{ $comment->created_at->format('Y-m-d') }}</td>
+                    <td>@ar(Str::limit($comment->content, 50))</td>
+                    <td>@ar($comment->type->name ?? '')</td>
+                    <td>@ar($comment->user->name ?? '')</td>
                 </tr>
                 @endforeach
             </tbody>
