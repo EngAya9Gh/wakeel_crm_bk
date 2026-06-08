@@ -11,7 +11,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(
+            \App\Services\Integrations\ERP\Contracts\ErpProviderInterface::class,
+            \App\Services\Integrations\ERP\Drivers\MockErpDriver::class
+        );
     }
 
     /**

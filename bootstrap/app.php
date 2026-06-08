@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         
         $middleware->alias([
             'api.key' => \App\Http\Middleware\ValidateApiKey::class,
+            'permission' => \App\Http\Middleware\CheckPermission::class,
         ]);
 
         // Fix for "Route [login] not defined" error

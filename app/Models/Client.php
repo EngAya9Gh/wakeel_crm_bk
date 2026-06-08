@@ -15,6 +15,7 @@ class Client extends Model
     protected $casts = [
         'first_contact_at' => 'datetime',
         'converted_at' => 'datetime',
+        'erp_synced_at' => 'datetime',
     ];
 
     // Relations Settings

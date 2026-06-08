@@ -187,5 +187,12 @@ Route::prefix('v1')->group(function () {
             Route::get('charts', [\App\Http\Controllers\Api\V1\Dashboard\DashboardController::class, 'charts']);
             Route::get('recent-activities', [\App\Http\Controllers\Api\V1\Dashboard\DashboardController::class, 'recentActivities']);
         });
+
+        // Stock Module (ERP Integration)
+        Route::prefix('stock')->group(function () {
+            Route::get('scan', [\App\Http\Controllers\Api\V1\Stock\StockController::class, 'scan']);
+            Route::post('validate', [\App\Http\Controllers\Api\V1\Stock\StockController::class, 'validateStock']);
+            Route::get('products/{product}', [\App\Http\Controllers\Api\V1\Stock\StockController::class, 'show']);
+        });
     });
 });

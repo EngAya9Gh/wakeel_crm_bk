@@ -14,7 +14,8 @@ class InvoiceService
         protected InvoiceRepositoryInterface $invoiceRepository,
         protected \App\Services\Clients\ClientService $clientService,
         protected \App\Services\Integrations\Contracts\SmsServiceInterface $smsService,
-        protected \App\Services\Integrations\Contracts\WhatsAppServiceInterface $whatsAppService
+        protected \App\Services\Integrations\Contracts\WhatsAppServiceInterface $whatsAppService,
+        protected \App\Services\Integrations\ERP\ErpService $erpService
     ) {}
 
     public function getInvoices(array $filters, int $perPage = 15): LengthAwarePaginator
@@ -37,6 +38,9 @@ class InvoiceService
 
             // Update Client Status to 'مشترك' (Subscriber)
             $this->updateClientToSubscriber($invoice->client_id, $invoice->id, $userId);
+
+            // Sync with ERP system in the background queue to keep the app fast
+            dispatch(new \App\Jobs\PostInvoiceToErp($invoice));
 
             return $invoice;
         });

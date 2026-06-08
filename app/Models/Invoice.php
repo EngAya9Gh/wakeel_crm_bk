@@ -24,11 +24,15 @@ class Invoice extends Model
         'due_date',
         'paid_at',
         'notes',
+        'erp_id',
+        'erp_synced_at',
+        'erp_sync_status',
     ];
 
     protected $casts = [
         'due_date' => 'date',
         'paid_at' => 'datetime',
+        'erp_synced_at' => 'datetime',
     ];
 
     public function client()
