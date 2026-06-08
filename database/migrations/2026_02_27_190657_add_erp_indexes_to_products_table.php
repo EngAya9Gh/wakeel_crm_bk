@@ -13,12 +13,18 @@ return new class extends Migration
     {
         Schema::table('products', function (Blueprint $table) {
             $table->index('erp_id');
-            // Assuming sku wasn't indexed. If it is, this might fail, but it's safe to try.
-            // A better way is to check first:
-            $sm = Schema::getConnection()->getDoctrineSchemaManager();
-            $indexesFound = $sm->listTableIndexes('products');
+            
+            // Check if index already exists using Laravel 11/12 native Schema builder
+            $indexes = Schema::getIndexes('products');
+            $hasSkuIndex = false;
+            foreach ($indexes as $index) {
+                if ($index['name'] === 'products_sku_index' || $index['name'] === 'products_sku_unique' || in_array('sku', $index['columns'])) {
+                    $hasSkuIndex = true;
+                    break;
+                }
+            }
 
-            if (!array_key_exists('products_sku_index', $indexesFound) && !array_key_exists('products_sku_unique', $indexesFound)) {
+            if (!$hasSkuIndex) {
                 $table->index('sku');
             }
         });
@@ -32,9 +38,16 @@ return new class extends Migration
         Schema::table('products', function (Blueprint $table) {
             $table->dropIndex(['erp_id']);
             
-            $sm = Schema::getConnection()->getDoctrineSchemaManager();
-            $indexesFound = $sm->listTableIndexes('products');
-            if (array_key_exists('products_sku_index', $indexesFound)) {
+            $indexes = Schema::getIndexes('products');
+            $hasSkuIndex = false;
+            foreach ($indexes as $index) {
+                if ($index['name'] === 'products_sku_index') {
+                    $hasSkuIndex = true;
+                    break;
+                }
+            }
+            
+            if ($hasSkuIndex) {
                 $table->dropIndex(['sku']);
             }
         });
