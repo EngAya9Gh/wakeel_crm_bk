@@ -18,7 +18,7 @@ composer install --no-dev --optimize-autoloader
 # 4. Run database migrations
 echo "🗄️ Running database migrations..."
 php artisan migrate --force
-
+//
 # 5. Clear and recreate cache
 echo "⚡ Optimizing and caching config/routes..."
 php artisan config:cache
