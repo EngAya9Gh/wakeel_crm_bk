@@ -13,6 +13,11 @@ Route::prefix('public/v1')->middleware(['api.key', 'throttle:60,1'])->group(func
     Route::post('leads', [\App\Http\Controllers\Api\Public\LeadController::class, 'store']);
 });
 
+// WhatsApp Webhook (Custom Authentication via X-Webhook-Key)
+Route::prefix('public/v1')->group(function () {
+    Route::post('webhook/whatsapp', [\App\Http\Controllers\Api\Public\WhatsAppWebhookController::class, 'handle']);
+});
+
 // =====================================================================
 // AUTHENTICATED API ROUTES (Sanctum Authentication Required)
 // =====================================================================

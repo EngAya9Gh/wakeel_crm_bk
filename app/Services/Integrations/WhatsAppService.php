@@ -11,11 +11,13 @@ use Illuminate\Support\Facades\Log;
 class WhatsAppService implements WhatsAppServiceInterface
 {
     public function __construct(
+        protected string $baseUrl = '',
         protected string $apiKey = '',
-        protected string $phoneNumberId = ''
+        protected string $channelId = ''
     ) {
-        $this->apiKey = config('services.whatsapp.api_key', 'dummy_whatsapp_key');
-        $this->phoneNumberId = config('services.whatsapp.phone_number_id', 'dummy_phone_id');
+        $this->baseUrl = config('services.whatsapp.base_url', 'https://provider.wakeel.cc/api/v1');
+        $this->apiKey = config('services.whatsapp.api_key', '');
+        $this->channelId = config('services.whatsapp.channel_id', '');
     }
 
     public function send(string $to, string $message, ?array $media = null): bool
@@ -26,26 +28,45 @@ class WhatsAppService implements WhatsAppServiceInterface
         }
 
         try {
-            // Example Meta/WhatsApp Cloud API structure
-            // $response = Http::withToken($this->apiKey)->post("https://graph.facebook.com/v17.0/{$this->phoneNumberId}/messages", [
-            //     'messaging_product' => 'whatsapp',
-            //     'to' => $to,
-            //     'type' => 'text',
-            //     'text' => ['body' => $message],
-            // ]);
+            $payload = [
+                'phone' => $to,
+            ];
 
-            // return $response->successful();
+            if (!empty($this->channelId)) {
+                $payload['channel_id'] = $this->channelId;
+            }
 
-            Log::info("WhatsApp Service invoked for {$to}. (Provider implementation pending)");
-            return true;
+            if ($media && isset($media['url']) && isset($media['type'])) {
+                // Media message
+                $endpoint = "{$this->baseUrl}/message/send-media";
+                $payload['url'] = $media['url'];
+                $payload['type'] = $media['type'];
+                $payload['caption'] = $message;
+            } else {
+                // Text message
+                $endpoint = "{$this->baseUrl}/message/send";
+                $payload['message'] = $message;
+            }
+
+            $response = Http::withToken($this->apiKey)
+                ->post($endpoint, $payload);
+
+            if ($response->successful()) {
+                Log::info("WhatsApp Message Sent successfully to {$to}");
+                return true;
+            }
+
+            Log::error("WhatsApp Sending Failed (HTTP Status {$response->status()}): " . $response->body());
+            return false;
+
         } catch (\Exception $e) {
-            Log::error("WhatsApp Sending Failed: " . $e->getMessage());
+            Log::error("WhatsApp Sending Exception: " . $e->getMessage());
             return false;
         }
     }
 
     protected function isDummyMode(): bool
     {
-        return config('app.env') === 'local' || $this->apiKey === 'dummy_whatsapp_key';
+        return config('app.env') === 'local' && empty($this->apiKey);
     }
 }
