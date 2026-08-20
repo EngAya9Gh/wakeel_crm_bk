@@ -15,4 +15,14 @@ interface WhatsAppServiceInterface
      * @return bool True if sent successfully, false otherwise
      */
     public function send(string $to, string $message, ?array $media = null): bool;
+
+    public function sendList(string $to, string $title, string $body, string $buttonText, array $sections): bool;
+
+    public function sendTemplate(string $to, string $templateId, array $variables): bool;
+
+    public function getThreads(): array;
+
+    public function getThreadMessages(string $threadId): array;
+
+    public function replyToThread(string $threadId, string $content, string $type = 'text'): bool;
 }

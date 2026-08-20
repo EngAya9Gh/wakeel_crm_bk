@@ -69,4 +69,65 @@ class WhatsAppService implements WhatsAppServiceInterface
     {
         return config('app.env') === 'local' && empty($this->apiKey);
     }
+
+    public function sendList(string $to, string $title, string $body, string $buttonText, array $sections): bool
+    {
+        if ($this->isDummyMode()) return true;
+
+        $payload = [
+            'phone' => $to,
+            'title' => $title,
+            'body' => $body,
+            'buttonText' => $buttonText,
+            'sections' => $sections,
+        ];
+        if (!empty($this->channelId)) $payload['channel_id'] = $this->channelId;
+
+        $response = Http::withToken($this->apiKey)->post("{$this->baseUrl}/message/send-list", $payload);
+        return $response->successful();
+    }
+
+    public function sendTemplate(string $to, string $templateId, array $variables): bool
+    {
+        if ($this->isDummyMode()) return true;
+
+        $payload = [
+            'phone' => $to,
+            'templateId' => $templateId,
+            'variables' => $variables,
+        ];
+        if (!empty($this->channelId)) $payload['channel_id'] = $this->channelId;
+
+        $response = Http::withToken($this->apiKey)->post("{$this->baseUrl}/templates/send", $payload);
+        return $response->successful();
+    }
+
+    public function getThreads(): array
+    {
+        if ($this->isDummyMode()) return [];
+
+        $response = Http::withToken($this->apiKey)->get("{$this->baseUrl}/chat/threads");
+        return $response->successful() ? $response->json('data', []) : [];
+    }
+
+    public function getThreadMessages(string $threadId): array
+    {
+        if ($this->isDummyMode()) return [];
+
+        $response = Http::withToken($this->apiKey)->get("{$this->baseUrl}/chat/threads/{$threadId}/messages");
+        return $response->successful() ? $response->json('data', []) : [];
+    }
+
+    public function replyToThread(string $threadId, string $content, string $type = 'text'): bool
+    {
+        if ($this->isDummyMode()) return true;
+
+        $payload = [
+            'content' => $content,
+            'type' => $type,
+        ];
+
+        $response = Http::withToken($this->apiKey)->post("{$this->baseUrl}/chat/threads/{$threadId}/messages", $payload);
+        return $response->successful();
+    }
 }

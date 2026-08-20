@@ -199,5 +199,13 @@ Route::prefix('v1')->group(function () {
             Route::post('validate', [\App\Http\Controllers\Api\V1\Stock\StockController::class, 'validateStock']);
             Route::get('products/{product}', [\App\Http\Controllers\Api\V1\Stock\StockController::class, 'show']);
         });
+
+        // WhatsApp Chat & Messaging Module
+        Route::prefix('whatsapp')->group(function () {
+            Route::post('send', [\App\Http\Controllers\Api\V1\WhatsAppController::class, 'sendMessage']);
+            Route::get('threads', [\App\Http\Controllers\Api\V1\WhatsAppController::class, 'threads']);
+            Route::get('threads/{threadId}/messages', [\App\Http\Controllers\Api\V1\WhatsAppController::class, 'threadMessages']);
+            Route::post('threads/{threadId}/messages', [\App\Http\Controllers\Api\V1\WhatsAppController::class, 'reply']);
+        });
     });
 });

@@ -238,7 +238,33 @@
 
 ---
 
-## 9. معالجة الأخطاء (Error Examples)
+## 9. وحدة المراسلة والواتس آب (WhatsApp & Chat - 4 APIs)
+
+تسمح هذه الوحدة لتطبيق الموبايل بالاستفادة من كافة خصائص الواتس آب للتواصل مع العملاء. جميع هذه المسارات تعتمد مسار البداية: `/whatsapp`.
+
+### 9.1 إرسال رسالة لعميل (Send Message)
+- **URL:** `POST /whatsapp/send`
+- **Body (Text):** `{ "client_id": 1, "type": "text", "message": "مرحباً بك" }`
+- **Body (Media):** `{ "client_id": 1, "type": "media", "url": "https://example.com/file.pdf", "media_type": "pdf", "caption": "ملف الفاتورة" }`
+- **Body (List):** `{ "client_id": 1, "type": "list", "title": "القائمة", "body": "اختر", "buttonText": "عرض", "sections": [...] }`
+- **Body (Template):** `{ "client_id": 1, "type": "template", "templateId": "tmpl_123", "variables": {"name": "أحمد"} }`
+*(ملاحظة: يمكنك إرسال `phone` كبديل للـ `client_id` إذا كان العميل غير مسجل).*
+
+### 9.2 صندوق المحادثات النشطة (Get Threads)
+- **URL:** `GET /whatsapp/threads`
+- **Output:** قائمة المحادثات (المُرسل، آخر رسالة، وقت الرسالة، عدد الرسائل غير المقروءة).
+
+### 9.3 فتح محادثة (Get Thread Messages)
+- **URL:** `GET /whatsapp/threads/{threadId}/messages`
+- **Output:** تاريخ الرسائل ضمن هذه المحادثة.
+
+### 9.4 الرد على المحادثة (Reply to Thread)
+- **URL:** `POST /whatsapp/threads/{threadId}/messages`
+- **Body:** `{ "content": "رد الموظف هنا", "type": "text" }`
+
+---
+
+## 10. معالجة الأخطاء (Error Examples)
 
 ### نموذج خطأ التحقق (422):
 ```json
@@ -261,4 +287,4 @@
 ```
 
 ---
-**تم إحصاء 86 API مغطاة في هذا التوثيق بدقة متناهية.**
+**تم إحصاء 90 API مغطاة في هذا التوثيق بدقة متناهية.**
