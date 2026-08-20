@@ -35,6 +35,16 @@ class WhatsAppWebhookController extends Controller
         
         Log::info("WhatsApp Webhook Received: {$event}", ['data' => $data]);
         
+        // Dispatch event if it's a message
+        if ($event === 'message.incoming') {
+            $payload = $data;
+            $threadId = $payload['thread_id'] ?? $payload['from'] ?? null;
+            
+            if ($threadId) {
+                \App\Events\NewWhatsAppMessageReceived::dispatch($payload, (string) $threadId);
+            }
+        }
+        
         // Depending on event type (e.g., 'message.incoming' or 'message.status') 
         // we can dispatch jobs or process it directly.
         // TODO: Add further event processing logic here when needed.
