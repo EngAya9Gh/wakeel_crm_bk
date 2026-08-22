@@ -5,7 +5,7 @@
     <title>قائمة العملاء</title>
     <style>
         body {
-            font-family: 'XBRiyaz', sans-serif;
+            font-family: 'Tajawal', sans-serif;
             direction: rtl;
             text-align: right;
             font-size: 14px;
