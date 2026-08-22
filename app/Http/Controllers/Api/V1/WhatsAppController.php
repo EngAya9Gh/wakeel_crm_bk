@@ -170,4 +170,42 @@ class WhatsAppController extends Controller
         return response($media['body'])
             ->header('Content-Type', $media['contentType']);
     }
+
+    /**
+     * POST /api/v1/whatsapp/threads/{threadId}/media-upload
+     * Upload a file to a thread and get back the provider's public URL.
+     */
+    public function uploadMedia(Request $request, string $threadId): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'file'       => 'required|file|max:20480', // 20MB max
+            'media_type' => 'required|in:image,audio,document,video',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        $url = $this->whatsAppService->uploadThreadMedia(
+            $threadId,
+            $request->file('file'),
+            $request->input('media_type')
+        );
+
+        if (!$url) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to upload media to provider'
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data'    => ['url' => $url]
+        ]);
+    }
 }

@@ -67,7 +67,8 @@ class WhatsAppService implements WhatsAppServiceInterface
 
     protected function isDummyMode(): bool
     {
-        return config('app.env') === 'local' && empty($this->apiKey);
+        // Only disable if the API key is genuinely missing, regardless of environment
+        return empty($this->apiKey);
     }
 
     public function sendList(string $to, string $title, string $body, string $buttonText, array $sections): bool
@@ -129,6 +130,41 @@ class WhatsAppService implements WhatsAppServiceInterface
 
         $response = Http::withToken($this->apiKey)->post("{$this->baseUrl}/chat/threads/{$threadId}/messages", $payload);
         return $response->successful();
+    }
+
+    /**
+     * Upload a media file to the provider and get a public URL.
+     *
+     * @param string $threadId
+     * @param \Illuminate\Http\UploadedFile $file
+     * @param string $mediaType  image | audio | document | video
+     * @return string|null  The public URL of the uploaded file, or null on failure
+     */
+    public function uploadThreadMedia(string $threadId, \Illuminate\Http\UploadedFile $file, string $mediaType = 'image'): ?string
+    {
+        if ($this->isDummyMode()) {
+            Log::info("WhatsApp Mock Media Upload: {$file->getClientOriginalName()}");
+            return 'https://placeholder.wakeel.cc/mock-media.jpg';
+        }
+
+        try {
+            $response = Http::withToken($this->apiKey)
+                ->attach('file', file_get_contents($file->getRealPath()), $file->getClientOriginalName())
+                ->post("{$this->baseUrl}/chat/threads/{$threadId}/media", [
+                    'type' => $mediaType,
+                    'channel_id' => $this->channelId,
+                ]);
+
+            if ($response->successful()) {
+                return $response->json('data.url');
+            }
+
+            Log::error("WhatsApp Media Upload Failed: " . $response->body());
+            return null;
+        } catch (\Exception $e) {
+            Log::error("WhatsApp Media Upload Exception: " . $e->getMessage());
+            return null;
+        }
     }
 
     public function getMedia(string $url): ?array

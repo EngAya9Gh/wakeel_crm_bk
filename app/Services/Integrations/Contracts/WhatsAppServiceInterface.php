@@ -33,4 +33,14 @@ interface WhatsAppServiceInterface
      * @return array|null Returns ['body' => string, 'contentType' => string] or null on failure
      */
     public function getMedia(string $url): ?array;
+
+    /**
+     * Upload a media file to the thread and return the public URL.
+     *
+     * @param string $threadId
+     * @param \Illuminate\Http\UploadedFile $file
+     * @param string $mediaType  image | audio | document | video
+     * @return string|null
+     */
+    public function uploadThreadMedia(string $threadId, \Illuminate\Http\UploadedFile $file, string $mediaType = 'image'): ?string;
 }
