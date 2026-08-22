@@ -84,7 +84,10 @@ class InvoiceService
         $message = "مرحباً {$invoice->client->name}،\nتم إصدار الفاتورة رقم {$invoice->invoice_number} بقيمة {$invoice->total}.\nيرجى السداد في أقرب وقت.";
         
         if (in_array('whatsapp', $channels) && $invoice->client && $invoice->client->phone) {
-            $this->whatsAppService->send($invoice->client->phone, $message);
+            $sent = $this->whatsAppService->send($invoice->client->phone, $message);
+            if (!$sent) {
+                throw new \Exception("فشل إرسال رسالة الواتس آب. قد يكون هناك مشكلة في إعدادات السيرفر أو مفاتيح الربط.");
+            }
         }
 
         if (in_array('sms', $channels) && $invoice->client && $invoice->client->phone) {

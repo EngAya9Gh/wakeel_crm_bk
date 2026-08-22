@@ -1,0 +1,40 @@
+في ملف: src/modules/chat/chat.service.js
+في السطر 88 تقريباً (داخل الدالة sendMessage)، قم بتغيير كتلة الـ try لتصبح هكذا:
+
+    try {
+      if (channel && channel.providerType === 'META_CLOUD') {
+        if (payload.hasMedia && payload.mediaUrl) {
+          metaResponse = await metaService.sendMedia(
+            channel,
+            thread.contactPhone,
+            msgType,
+            payload.mediaUrl,
+            payload.content
+          );
+        } else {
+          metaResponse = await metaService.sendText(
+            channel,
+            thread.contactPhone,
+            payload.content
+          );
+        }
+      } else {
+        const whatsappService = require('../whatsapp/whatsapp.service');
+        if (payload.hasMedia && payload.mediaUrl) {
+          await whatsappService.sendMediaMessage(
+            tenantId,
+            thread.contactPhone,
+            msgType,
+            payload.mediaUrl,
+            payload.content,
+            payload.mediaMime,
+            'file' // fileName is optional
+          );
+        } else {
+          await whatsappService.sendTextMessage(
+            tenantId,
+            thread.contactPhone,
+            payload.content
+          );
+        }
+      }
