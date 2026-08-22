@@ -142,25 +142,17 @@ class WhatsAppService implements WhatsAppServiceInterface
      */
     public function uploadThreadMedia(string $threadId, \Illuminate\Http\UploadedFile $file, string $mediaType = 'image'): ?string
     {
-        if ($this->isDummyMode()) {
-            Log::info("WhatsApp Mock Media Upload: {$file->getClientOriginalName()}");
-            return 'https://placeholder.wakeel.cc/mock-media.jpg';
-        }
-
         try {
-            $response = Http::withToken($this->apiKey)
-                ->attach('file', file_get_contents($file->getRealPath()), $file->getClientOriginalName())
-                ->post("{$this->baseUrl}/chat/threads/{$threadId}/media", [
-                    'type' => $mediaType,
-                    'channel_id' => $this->channelId,
-                ]);
-
-            if ($response->successful()) {
-                return $response->json('data.url');
+            $filename = time() . '_' . preg_replace('/[^A-Za-z0-9.\-_]/', '', $file->getClientOriginalName());
+            $directory = public_path("uploads/whatsapp_media/{$threadId}");
+            
+            if (!file_exists($directory)) {
+                mkdir($directory, 0775, true);
             }
-
-            Log::error("WhatsApp Media Upload Failed: " . $response->body());
-            return null;
+            
+            $file->move($directory, $filename);
+            
+            return url("uploads/whatsapp_media/{$threadId}/{$filename}");
         } catch (\Exception $e) {
             Log::error("WhatsApp Media Upload Exception: " . $e->getMessage());
             return null;
