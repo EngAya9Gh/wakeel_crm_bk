@@ -21,8 +21,8 @@ php artisan migrate --force
 
 # 5. Create storage/fonts directory if missing and set permissions
 echo "📁 Setting up storage fonts permissions..."
-mkdir -p storage/fonts
-chmod -R 775 storage/fonts
+mkdir -p storage/fonts || true
+chmod -R 775 storage/fonts || true
 # chown -R www-data:www-data storage/fonts # (Uncomment if needed based on server user)
 
 # 6. Clear and recreate cache
