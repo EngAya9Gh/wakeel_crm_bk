@@ -22,6 +22,14 @@ interface WhatsAppServiceInterface
 
     public function getThreads(): array;
 
+    /**
+     * Find an existing thread by contact phone number.
+     *
+     * @param string $phone Phone number (with country code, no +)
+     * @return string|null Thread ID if found, null otherwise
+     */
+    public function findThreadByPhone(string $phone): ?string;
+
     public function getThreadMessages(string $threadId): array;
 
     public function replyToThread(string $threadId, string $content, string $type = 'text', ?string $mediaUrl = null): bool;

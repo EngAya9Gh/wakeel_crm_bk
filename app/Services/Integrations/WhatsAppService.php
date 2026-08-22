@@ -111,6 +111,37 @@ class WhatsAppService implements WhatsAppServiceInterface
         return $response->successful() ? $response->json('data', []) : [];
     }
 
+    /**
+     * Find an existing thread by contact phone number.
+     * The provider's /message/send endpoint is blocked when the WhatsApp session
+     * uses Business-initiated messaging restrictions. The ONLY reliable way to
+     * send is via an existing thread (replyToThread). This method bridges that gap.
+     */
+    public function findThreadByPhone(string $phone): ?string
+    {
+        if ($this->isDummyMode()) return null;
+
+        // Normalize: strip leading + or spaces so we can compare consistently
+        $normalizedPhone = ltrim(preg_replace('/\s+/', '', $phone), '+');
+
+        $response = Http::withToken($this->apiKey)->get("{$this->baseUrl}/chat/threads");
+
+        if (!$response->successful()) {
+            return null;
+        }
+
+        $threads = $response->json('data.threads', []);
+
+        foreach ($threads as $thread) {
+            $contactPhone = ltrim(preg_replace('/\s+/', '', $thread['contactPhone'] ?? ''), '+');
+            if ($contactPhone === $normalizedPhone) {
+                return $thread['_id'] ?? $thread['id'] ?? null;
+            }
+        }
+
+        return null;
+    }
+
     public function getThreadMessages(string $threadId): array
     {
         if ($this->isDummyMode()) return [];

@@ -81,13 +81,10 @@ class InvoiceService
 
     public function markAsSent(Invoice $invoice, array $channels = ['whatsapp']): Invoice
     {
-        $message = "مرحباً {$invoice->client->name}،\nتم إصدار الفاتورة رقم {$invoice->invoice_number} بقيمة {$invoice->total}.\nيرجى السداد في أقرب وقت.";
-        
+        $message = "مرحباً {$invoice->client->name}،\nتم إصدار الفاتورة رقم {$invoice->invoice_number} بقيمة {$invoice->total} ريال.\nيرجى السداد في أقرب وقت. شكراً لثقتكم.";
+
         if (in_array('whatsapp', $channels) && $invoice->client && $invoice->client->phone) {
-            $sent = $this->whatsAppService->send($invoice->client->phone, $message);
-            if (!$sent) {
-                throw new \Exception("فشل إرسال رسالة الواتس آب. قد يكون هناك مشكلة في إعدادات السيرفر أو مفاتيح الربط.");
-            }
+            $this->sendViaWhatsApp($invoice->client->phone, $message);
         }
 
         if (in_array('sms', $channels) && $invoice->client && $invoice->client->phone) {
@@ -97,8 +94,34 @@ class InvoiceService
         if ($invoice->status === 'draft') {
             return $this->invoiceRepository->update($invoice, ['status' => 'sent']);
         }
-        
+
         return $invoice;
+    }
+
+    /**
+     * Send a WhatsApp message using the thread-based approach.
+     *
+     * The provider blocks /message/send for outbound-only (Business-initiated) sessions.
+     * The reliable path is: find the existing thread for the client → reply via the thread.
+     * If no thread exists, the client has never contacted us on WhatsApp, so we throw a
+     * descriptive error instead of a cryptic "session not connected" message.
+     */
+    protected function sendViaWhatsApp(string $phone, string $message): void
+    {
+        $threadId = $this->whatsAppService->findThreadByPhone($phone);
+
+        if (!$threadId) {
+            throw new \Exception(
+                "لا يمكن إرسال رسالة واتس آب لهذا العميل ({$phone}). " .
+                "يجب أن يبدأ العميل محادثة معنا على الواتس آب أولاً لفتح قناة التواصل."
+            );
+        }
+
+        $sent = $this->whatsAppService->replyToThread($threadId, $message);
+
+        if (!$sent) {
+            throw new \Exception("فشل إرسال رسالة الواتس آب عبر المحادثة الموجودة. يرجى المحاولة مرة أخرى.");
+        }
     }
 
     public function getInvoiceStats(array $filters = []): array
