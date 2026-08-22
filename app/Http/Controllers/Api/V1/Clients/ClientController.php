@@ -302,8 +302,9 @@ class ClientController extends Controller
     // Export & PDF
     public function export(Request $request)
     {
-        $filters = $request->except(['page', 'per_page']); // Export ignores pagination mostly
-        return $this->clientService->exportClients($filters);
+        $filters = $request->except(['page', 'per_page', 'format']);
+        $format = $request->query('format', 'excel');
+        return $this->clientService->exportClients($filters, $format);
     }
 
     public function downloadPdf(int $id)

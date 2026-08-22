@@ -281,42 +281,17 @@ class ClientService
         return $pdf->download("client_{$client->id}_{$client->name}.pdf");
     }
 
-    public function exportClients(array $filters)
+    public function exportClients(array $filters, string $format = 'excel')
     {
-        // Using a simple CSV generation for now to avoid complexity if package fails,
-        // or we can use Maatwebsite/Excel if installed successfully.
-        // For simplicity and speed without extra classes, let's stream a CSV.
-        
         $clients = $this->clientRepository->paginate($filters, 10000); // Get all (limit reasonable)
         
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="clients_export.csv"',
-        ];
+        if ($format === 'pdf') {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.clients_list', ['clients' => $clients]);
+            return $pdf->download('clients_export.pdf');
+        }
 
-        $callback = function () use ($clients) {
-            $file = fopen('php://output', 'w');
-            
-            // Add BOM for Excel UTF-8 compatibility
-            fputs($file, "\xEF\xBB\xBF"); 
-            
-            fputcsv($file, ['ID', 'Name', 'Phone', 'Email', 'Status', 'City', 'Created At']);
-
-            foreach ($clients as $client) {
-                fputcsv($file, [
-                    $client->id,
-                    $client->name,
-                    $client->phone,
-                    $client->email,
-                    $client->status->name ?? '',
-                    $client->city->name ?? '',
-                    $client->created_at->format('Y-m-d'),
-                ]);
-            }
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        // Return real Excel file
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\ClientsExport($clients), 'clients_export.xlsx');
     }
 
     // ===================== PROCEDURES (TASKS) =====================
