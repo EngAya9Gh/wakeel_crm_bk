@@ -262,6 +262,11 @@
 - **URL:** `POST /whatsapp/threads/{threadId}/messages`
 - **Body:** `{ "content": "رد الموظف هنا", "type": "text" }`
 
+### 9.5 عرض الصور وملفات الواتس آب (Get Media)
+- **URL:** `GET /whatsapp/media?url={url}`
+- **Parameters:** `url` هو الرابط المباشر للملف القادم من المنصة (مثال: `url=https://provider.wakeel.cc/media/123.jpg`).
+- **Output:** سيقوم الباك إند بإرجاع الملف الفعلي (الصورة أو الـ PDF) مباشرة (Stream) لعرضه في التطبيق.
+
 ---
 
 ## 10. معالجة الأخطاء (Error Examples)

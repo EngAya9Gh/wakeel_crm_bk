@@ -130,4 +130,20 @@ class WhatsAppService implements WhatsAppServiceInterface
         $response = Http::withToken($this->apiKey)->post("{$this->baseUrl}/chat/threads/{$threadId}/messages", $payload);
         return $response->successful();
     }
+
+    public function getMedia(string $url): ?array
+    {
+        if ($this->isDummyMode()) return null;
+
+        $response = Http::withToken($this->apiKey)->get($url);
+
+        if ($response->successful()) {
+            return [
+                'body' => $response->body(),
+                'contentType' => $response->header('Content-Type') ?? 'application/octet-stream',
+            ];
+        }
+
+        return null;
+    }
 }

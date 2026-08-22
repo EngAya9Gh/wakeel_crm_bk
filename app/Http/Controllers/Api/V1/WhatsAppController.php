@@ -143,4 +143,31 @@ class WhatsAppController extends Controller
             'message' => $success ? 'Reply sent successfully' : 'Failed to send reply'
         ], $success ? 200 : 500);
     }
+
+    public function downloadMedia(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'url' => 'required|url',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $media = $this->whatsAppService->getMedia($request->url);
+
+        if (!$media) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve media from provider'
+            ], 404);
+        }
+
+        return response($media['body'])
+            ->header('Content-Type', $media['contentType']);
+    }
 }

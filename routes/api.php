@@ -206,6 +206,7 @@ Route::prefix('v1')->group(function () {
             Route::get('threads', [\App\Http\Controllers\Api\V1\WhatsAppController::class, 'threads']);
             Route::get('threads/{threadId}/messages', [\App\Http\Controllers\Api\V1\WhatsAppController::class, 'threadMessages']);
             Route::post('threads/{threadId}/messages', [\App\Http\Controllers\Api\V1\WhatsAppController::class, 'reply']);
+            Route::get('media', [\App\Http\Controllers\Api\V1\WhatsAppController::class, 'downloadMedia']);
         });
     });
 });
