@@ -119,7 +119,7 @@ class WhatsAppService implements WhatsAppServiceInterface
         return $response->successful() ? $response->json('data', []) : [];
     }
 
-    public function replyToThread(string $threadId, string $content, string $type = 'text'): bool
+    public function replyToThread(string $threadId, string $content, string $type = 'text', ?string $mediaUrl = null): bool
     {
         if ($this->isDummyMode()) return true;
 
@@ -127,6 +127,11 @@ class WhatsAppService implements WhatsAppServiceInterface
             'content' => $content,
             'type' => $type,
         ];
+        
+        if ($mediaUrl) {
+            $payload['hasMedia'] = true;
+            $payload['mediaUrl'] = $mediaUrl;
+        }
 
         $response = Http::withToken($this->apiKey)->post("{$this->baseUrl}/chat/threads/{$threadId}/messages", $payload);
         return $response->successful();

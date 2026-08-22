@@ -120,8 +120,10 @@ class WhatsAppController extends Controller
     public function reply(Request $request, string $threadId): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'content' => 'required|string',
-            'type' => 'nullable|string|in:text',
+            'content' => 'required_without:url|string|nullable',
+            'type' => 'nullable|string|in:text,media,image,document,audio,video',
+            'url' => 'required_if:type,media,image,document,audio,video|url|nullable',
+            'media_type' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -132,10 +134,16 @@ class WhatsAppController extends Controller
             ], 422);
         }
 
+        $providerType = $request->type ?? 'text';
+        if ($providerType === 'media' && $request->media_type) {
+            $providerType = $request->media_type;
+        }
+
         $success = $this->whatsAppService->replyToThread(
             $threadId,
-            $request->content,
-            $request->type ?? 'text'
+            $request->content ?? '',
+            $providerType,
+            $request->url
         );
 
         return response()->json([
