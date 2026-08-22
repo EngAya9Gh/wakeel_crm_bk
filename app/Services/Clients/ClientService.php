@@ -286,7 +286,7 @@ class ClientService
         $clients = $this->clientRepository->paginate($filters, 10000); // Get all (limit reasonable)
         
         if ($format === 'pdf') {
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.clients_list', ['clients' => $clients]);
+            $pdf = \Mccarlosen\LaravelMpdf\Facades\LaravelMpdf::loadView('pdf.clients_list', ['clients' => $clients]);
             return $pdf->download('clients_export.pdf');
         }
 
