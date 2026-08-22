@@ -29,7 +29,7 @@ class WhatsAppService implements WhatsAppServiceInterface
 
         try {
             $payload = [
-                'phone' => $to,
+                'phone' => ltrim($to, '+'),
             ];
 
             if (!empty($this->channelId)) {
@@ -76,7 +76,7 @@ class WhatsAppService implements WhatsAppServiceInterface
         if ($this->isDummyMode()) return true;
 
         $payload = [
-            'phone' => $to,
+            'phone' => ltrim($to, '+'),
             'title' => $title,
             'body' => $body,
             'buttonText' => $buttonText,
@@ -93,7 +93,7 @@ class WhatsAppService implements WhatsAppServiceInterface
         if ($this->isDummyMode()) return true;
 
         $payload = [
-            'phone' => $to,
+            'phone' => ltrim($to, '+'),
             'templateId' => $templateId,
             'variables' => $variables,
         ];
