@@ -33,10 +33,8 @@ class WhatsAppService implements WhatsAppServiceInterface
                 'message' => $message,
             ];
 
-            if (!empty($this->channelId)) {
-                $payload['channel_id'] = $this->channelId;
-            }
-
+            // The provider API strictly validates the payload and rejects 'channel_id'
+            // It infers the channel from the API key (tenant context) automatically.
             if ($media && isset($media['url']) && isset($media['type'])) {
                 // Media message
                 $endpoint = "{$this->baseUrl}/message/send-media";
@@ -84,7 +82,7 @@ class WhatsAppService implements WhatsAppServiceInterface
             'buttonText' => $buttonText,
             'sections' => $sections,
         ];
-        if (!empty($this->channelId)) $payload['channel_id'] = $this->channelId;
+
 
         $response = Http::withToken($this->apiKey)->post("{$this->baseUrl}/message/send-list", $payload);
         return $response->successful();
@@ -99,7 +97,7 @@ class WhatsAppService implements WhatsAppServiceInterface
             'templateId' => $templateId,
             'variables' => $variables,
         ];
-        if (!empty($this->channelId)) $payload['channel_id'] = $this->channelId;
+
 
         $response = Http::withToken($this->apiKey)->post("{$this->baseUrl}/templates/send", $payload);
         return $response->successful();
