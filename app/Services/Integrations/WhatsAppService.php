@@ -57,12 +57,13 @@ class WhatsAppService implements WhatsAppServiceInterface
                 return true;
             }
 
-            Log::error("WhatsApp Sending Failed (HTTP Status {$response->status()}): " . $response->body());
-            return false;
+            $errorMsg = "Provider API Error ({$response->status()}): " . $response->body();
+            Log::error($errorMsg);
+            throw new \Exception($errorMsg);
 
         } catch (\Exception $e) {
             Log::error("WhatsApp Sending Exception: " . $e->getMessage());
-            return false;
+            throw $e;
         }
     }
 
