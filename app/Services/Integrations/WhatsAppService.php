@@ -30,6 +30,7 @@ class WhatsAppService implements WhatsAppServiceInterface
         try {
             $payload = [
                 'phone' => ltrim($to, '+'),
+                'message' => $message,
             ];
 
             if (!empty($this->channelId)) {
