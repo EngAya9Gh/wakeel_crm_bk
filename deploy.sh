@@ -9,7 +9,8 @@ php artisan down || true
 
 # 2. Pull the latest changes from Git
 echo "📥 Pulling latest code from GitHub..."
-git pull origin main
+git fetch origin main
+git reset --hard origin/main
 
 # 3. Install/update Composer dependencies
 echo "📦 Installing Composer dependencies..."
