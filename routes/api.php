@@ -15,7 +15,7 @@ Route::prefix('public/v1')->middleware(['api.key', 'throttle:60,1'])->group(func
 
 // WhatsApp Webhook (Custom Authentication via X-Webhook-Key)
 Route::prefix('public/v1')->group(function () {
-    Route::post('webhook/whatsapp', [\App\Http\Controllers\Api\Public\WhatsAppWebhookController::class, 'handle']);
+    Route::post('webhook/whatsapp/{tenant}', [\App\Http\Controllers\Api\Public\WhatsAppWebhookController::class, 'handle']);
 });
 
 // =====================================================================
@@ -26,7 +26,7 @@ Route::prefix('v1')->group(function () {
     Route::post('auth/login', [AuthController::class, 'login']);
     Route::post('auth/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('auth/reset-password', [AuthController::class, 'resetPassword']);
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'set.tenant'])->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);
         Route::post('auth/refresh', [AuthController::class, 'refresh']); // User must provide Refresh Token
         Route::get('auth/me', [AuthController::class, 'me']);
@@ -183,6 +183,12 @@ Route::prefix('v1')->group(function () {
             Route::put('roles/{id}', [$s[0], 'updateRole']);
             Route::delete('roles/{id}', [$s[0], 'deleteRole']);
 
+            // API Keys Management
+            Route::get('api-keys', [\App\Http\Controllers\Api\V1\Settings\ApiKeyController::class, 'index']);
+            Route::post('api-keys', [\App\Http\Controllers\Api\V1\Settings\ApiKeyController::class, 'store']);
+            Route::patch('api-keys/{id}/toggle', [\App\Http\Controllers\Api\V1\Settings\ApiKeyController::class, 'toggle']);
+            Route::delete('api-keys/{id}', [\App\Http\Controllers\Api\V1\Settings\ApiKeyController::class, 'destroy']);
+
             Route::get('permissions', [$s[0], 'getPermissions']);
         });
         
@@ -211,3 +217,29 @@ Route::prefix('v1')->group(function () {
         });
     });
 });
+
+// =====================================================================
+// SUPER ADMIN ROUTES (System-wide management — no Tenant scope)
+// =====================================================================
+Route::prefix('super/v1')->middleware(['auth:sanctum', 'super.admin'])->group(function () {
+    // Dashboard
+    Route::get('stats', [\App\Http\Controllers\Api\Super\SuperDashboardController::class, 'stats']);
+
+    // Tenants CRUD
+    Route::get('tenants', [\App\Http\Controllers\Api\Super\TenantController::class, 'index']);
+    Route::post('tenants', [\App\Http\Controllers\Api\Super\TenantController::class, 'store']);
+    Route::get('tenants/{id}', [\App\Http\Controllers\Api\Super\TenantController::class, 'show']);
+    Route::patch('tenants/{id}', [\App\Http\Controllers\Api\Super\TenantController::class, 'update']);
+    Route::patch('tenants/{id}/toggle', [\App\Http\Controllers\Api\Super\TenantController::class, 'toggle']);
+    Route::delete('tenants/{id}', [\App\Http\Controllers\Api\Super\TenantController::class, 'destroy']);
+
+    // API Keys per Tenant
+    Route::get('tenants/{id}/api-keys', [\App\Http\Controllers\Api\Super\TenantController::class, 'apiKeys']);
+    Route::post('tenants/{id}/api-keys', [\App\Http\Controllers\Api\Super\TenantController::class, 'storeApiKey']);
+    Route::patch('tenants/{id}/api-keys/{keyId}/toggle', [\App\Http\Controllers\Api\Super\TenantController::class, 'toggleApiKey']);
+    Route::delete('tenants/{id}/api-keys/{keyId}', [\App\Http\Controllers\Api\Super\TenantController::class, 'destroyApiKey']);
+
+    // Users per Tenant
+    Route::get('tenants/{id}/users', [\App\Http\Controllers\Api\Super\TenantController::class, 'users']);
+});
+

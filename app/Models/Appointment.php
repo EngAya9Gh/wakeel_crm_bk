@@ -2,18 +2,19 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Appointment extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
     protected $guarded = [];
 
     protected $casts = [
-        'start_at' => 'datetime',
-        'end_at'   => 'datetime',
+        'start_at'    => 'datetime',
+        'end_at'      => 'datetime',
         'reminder_at' => 'datetime',
     ];
 

@@ -1,43 +1,107 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Starting Deployment..."
+echo "🚀 Starting Deployment — Wakeel CRM"
+echo "=================================="
 
-# 1. Enter maintenance mode
-echo "⏳ Entering Maintenance Mode..."
+# ──────────────────────────────────────────────────────────────────────────
+# CONFIGURATION
+# ──────────────────────────────────────────────────────────────────────────
+ADMIN_PANEL_DIR="admin-panel"   # Next.js admin panel directory
+APP_ENV="${APP_ENV:-production}"
+
+# ──────────────────────────────────────────────────────────────────────────
+# STEP 1 — Maintenance mode
+# ──────────────────────────────────────────────────────────────────────────
+echo ""
+echo "⏳ [1/9] Entering maintenance mode..."
 php artisan down || true
 
-# 2. Pull the latest changes from Git
-echo "📥 Pulling latest code from GitHub..."
+# ──────────────────────────────────────────────────────────────────────────
+# STEP 2 — Pull latest code
+# ──────────────────────────────────────────────────────────────────────────
+echo ""
+echo "📥 [2/9] Pulling latest code from GitHub..."
 git fetch origin main
 git reset --hard origin/main
 
-# 3. Install/update Composer dependencies
-echo "📦 Installing Composer dependencies..."
+# ──────────────────────────────────────────────────────────────────────────
+# STEP 3 — PHP dependencies
+# ──────────────────────────────────────────────────────────────────────────
+echo ""
+echo "📦 [3/9] Installing Composer dependencies..."
 composer install --no-dev --optimize-autoloader
 
-# 4. Run database migrations
-echo "🗄️ Running database migrations..."
+# ──────────────────────────────────────────────────────────────────────────
+# STEP 4 — Database migrations (SAFE — never seeds, never truncates)
+# ──────────────────────────────────────────────────────────────────────────
+echo ""
+echo "🗄️  [4/9] Running database migrations..."
 php artisan migrate --force
+echo "✅ Migrations done. Existing data is intact."
 
-# 5. Create storage/fonts directory if missing and set permissions
-echo "📁 Setting up storage fonts permissions..."
-mkdir -p storage/fonts || true
-chmod -R 775 storage/fonts || true
-# chown -R www-data:www-data storage/fonts # (Uncomment if needed based on server user)
+# ──────────────────────────────────────────────────────────────────────────
+# STEP 5 — Super Admin seeder (SAFE — uses firstOrCreate, won't duplicate)
+# ──────────────────────────────────────────────────────────────────────────
+# NOTE: This ONLY creates the super admin user if it doesn't already exist.
+#       It NEVER touches tenant data, client data, invoices, or any
+#       existing business data. Safe to run on every deployment.
+#       The TenantSeeder is NOT called here — it was a one-time setup tool.
+echo ""
+echo "👤 [5/9] Ensuring Super Admin user exists..."
+php artisan db:seed --class=SuperAdminSeeder --force
+echo "✅ Super Admin check done."
 
-# 6. Clear and recreate cache
-echo "⚡ Optimizing and caching config/routes..."
+# ──────────────────────────────────────────────────────────────────────────
+# STEP 6 — Storage & permissions
+# ──────────────────────────────────────────────────────────────────────────
+echo ""
+echo "📁 [6/9] Setting up storage & permissions..."
+mkdir -p storage/fonts storage/logs || true
+chmod -R 775 storage bootstrap/cache || true
+php artisan storage:link --force || true
+
+# ──────────────────────────────────────────────────────────────────────────
+# STEP 7 — Clear & rebuild cache
+# ──────────────────────────────────────────────────────────────────────────
+echo ""
+echo "⚡ [7/9] Optimizing config, routes & views..."
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
+php artisan event:cache
 
-# 6. Restart queue worker (if Supervisor is configured)
-echo "🔄 Restarting queue worker..."
+# ──────────────────────────────────────────────────────────────────────────
+# STEP 8 — Admin Panel (Next.js) build
+# ──────────────────────────────────────────────────────────────────────────
+echo ""
+echo "🎨 [8/9] Building Admin Panel (Next.js)..."
+if [ -d "$ADMIN_PANEL_DIR" ]; then
+    cd "$ADMIN_PANEL_DIR"
+    npm ci --omit=dev
+    npm run build
+    cd ..
+    echo "✅ Admin Panel built successfully."
+else
+    echo "⚠️  Admin panel directory '$ADMIN_PANEL_DIR' not found. Skipping."
+fi
+
+# ──────────────────────────────────────────────────────────────────────────
+# STEP 9 — Restart queue worker & exit maintenance
+# ──────────────────────────────────────────────────────────────────────────
+echo ""
+echo "🔄 [9/9] Restarting queue workers & going live..."
 php artisan queue:restart || true
-
-# 7. Exit maintenance mode
-echo "🟢 Exiting Maintenance Mode... Application is LIVE!"
 php artisan up
 
-echo "✅ Deployment completed successfully!"
+echo ""
+echo "══════════════════════════════════════════"
+echo "✅  Deployment completed successfully!"
+echo "══════════════════════════════════════════"
+echo ""
+echo "📌 Important reminders:"
+echo "   • API Backend  : https://your-domain.com/api"
+echo "   • Admin Panel  : https://admin.your-domain.com  (or :3000 locally)"
+echo "   • Super Admin  : superadmin@wakeel.system"
+echo "   • ⚠️  Change the Super Admin password after first login!"
+echo ""

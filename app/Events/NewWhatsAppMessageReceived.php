@@ -18,14 +18,16 @@ class NewWhatsAppMessageReceived implements ShouldBroadcastNow
 
     public array $messageData;
     public string $threadId;
+    public ?int $tenantId;
 
     /**
      * Create a new event instance.
      */
-    public function __construct(array $messageData, string $threadId)
+    public function __construct(array $messageData, string $threadId, ?int $tenantId = null)
     {
         $this->messageData = $messageData;
         $this->threadId = $threadId;
+        $this->tenantId = $tenantId;
     }
 
     /**
@@ -35,10 +37,17 @@ class NewWhatsAppMessageReceived implements ShouldBroadcastNow
      */
     public function broadcastOn(): array
     {
-        return [
+        $channels = [
             new PrivateChannel('chat.' . $this->threadId),
-            new PrivateChannel('whatsapp.inbox'),
         ];
+
+        if ($this->tenantId) {
+            $channels[] = new PrivateChannel('tenant.' . $this->tenantId . '.whatsapp.inbox');
+        } else {
+            $channels[] = new PrivateChannel('whatsapp.inbox'); // Fallback for backward compatibility
+        }
+
+        return $channels;
     }
 
     /**

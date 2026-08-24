@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Team extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
-    protected $fillable = ['name', 'category', 'description', 'is_active'];
+    protected $fillable = ['tenant_id', 'name', 'category', 'description', 'is_active'];
 
     protected $casts = [
         'is_active' => 'boolean',

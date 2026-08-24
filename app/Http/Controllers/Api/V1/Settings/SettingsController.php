@@ -78,8 +78,8 @@ class SettingsController extends Controller
     {
         $status = ClientStatus::findOrFail($id);
         
-        // Check if status is in use
-        $clientsCount = DB::table('clients')->where('status_id', $id)->count();
+        // Check if status is in use — uses tenant-scoped query automatically
+        $clientsCount = \App\Models\Client::where('status_id', $id)->count();
         if ($clientsCount > 0) {
             return $this->errorResponse("لا يمكن حذف هذه الحالة لأنها مستخدمة من قبل {$clientsCount} عميل");
         }
@@ -371,8 +371,8 @@ class SettingsController extends Controller
     public function deleteTeam(int $id)
     {
         $team = Team::findOrFail($id);
-        // Check if team has users
-        if (DB::table('users')->where('team_id', $id)->exists()) {
+        // Check if team has users — uses tenant-scoped query automatically
+        if (\App\Models\User::where('team_id', $id)->exists()) {
             return $this->errorResponse("لا يمكن حذف الفريق لوجود موظفين مرتبسين به");
         }
         $team->delete();
@@ -423,7 +423,7 @@ class SettingsController extends Controller
     public function deleteRole(int $id)
     {
         $role = Role::findOrFail($id);
-        if (DB::table('users')->where('role_id', $id)->exists()) {
+        if (\App\Models\User::where('role_id', $id)->exists()) {
             return $this->errorResponse("لا يمكن حذف الدور لوجود موظفين مرتبطين به");
         }
         $role->delete();

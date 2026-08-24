@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
     protected $fillable = [
+        'tenant_id',
         'name',
         'description',
         'sku',
@@ -23,10 +25,10 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
-        'is_stockable' => 'boolean',
-        'stock_last_synced_at' => 'datetime',
-        'unit_price' => 'decimal:2',
+        'is_active'           => 'boolean',
+        'is_stockable'        => 'boolean',
+        'stock_last_synced_at'=> 'datetime',
+        'unit_price'          => 'decimal:2',
     ];
 
     /**

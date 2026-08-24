@@ -1,0 +1,174 @@
+// ====== Types ======
+export interface Tenant {
+  id: number;
+  name: string;
+  slug: string;
+  email: string | null;
+  phone: string | null;
+  logo: string | null;
+  is_active: boolean;
+  plan: 'basic' | 'pro' | 'enterprise';
+  settings: Record<string, unknown> | null;
+  users_count?: number;
+  clients_count?: number;
+  invoices_count?: number;
+  api_keys_count?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiKey {
+  id: number;
+  tenant_id: number;
+  name: string;
+  key: string;
+  is_active: boolean;
+  last_used_at: string | null;
+  created_at: string;
+}
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  is_active: boolean;
+  created_at: string;
+  role?: { name: string };
+  team?: { name: string };
+}
+
+export interface Stats {
+  tenants: { total: number; active: number };
+  users: { total: number; active: number };
+  clients: { total: number };
+  invoices: { total: number };
+  tenants_by_plan: Record<string, number>;
+}
+
+// ====== API Client ======
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+
+function getToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('super_token');
+}
+
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const token = getToken();
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    },
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || 'حدث خطأ في الاتصال بالخادم');
+  }
+
+  return data;
+}
+
+// ====== Auth ======
+export async function login(email: string, password: string) {
+  const res = await request<{ data: { access_token: string; user: User } }>(
+    '/v1/auth/login',
+    {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }
+  );
+  return res.data;
+}
+
+// ====== Stats ======
+export async function fetchStats() {
+  const res = await request<{ data: Stats }>('/super/v1/stats');
+  return res.data;
+}
+
+// ====== Tenants ======
+export async function fetchTenants(params?: {
+  search?: string;
+  is_active?: boolean;
+  plan?: string;
+  page?: number;
+}) {
+  const qs = new URLSearchParams();
+  if (params?.search) qs.set('search', params.search);
+  if (params?.is_active !== undefined) qs.set('is_active', String(params.is_active));
+  if (params?.plan) qs.set('plan', params.plan);
+  if (params?.page) qs.set('page', String(params.page));
+
+  const res = await request<{ data: { data: Tenant[] } }>(`/super/v1/tenants?${qs}`);
+  return res.data.data;
+}
+
+export async function fetchTenant(id: number) {
+  const res = await request<{ data: Tenant }>(`/super/v1/tenants/${id}`);
+  return res.data;
+}
+
+export async function createTenant(data: Partial<Tenant> & {
+  admin_name?: string;
+  admin_email?: string;
+  admin_password?: string;
+}) {
+  const res = await request<{ data: { tenant: Tenant } }>('/super/v1/tenants', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+export async function updateTenant(id: number, data: Partial<Tenant> & { settings?: Record<string, string> }) {
+  const res = await request<{ data: Tenant }>(`/super/v1/tenants/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+export async function toggleTenant(id: number) {
+  const res = await request<{ data: { is_active: boolean } }>(`/super/v1/tenants/${id}/toggle`, {
+    method: 'PATCH',
+  });
+  return res.data;
+}
+
+export async function deleteTenant(id: number) {
+  return request(`/super/v1/tenants/${id}`, { method: 'DELETE' });
+}
+
+// ====== API Keys ======
+export async function fetchApiKeys(tenantId: number) {
+  const res = await request<{ data: { api_keys: ApiKey[] } }>(`/super/v1/tenants/${tenantId}/api-keys`);
+  return res.data.api_keys;
+}
+
+export async function createApiKey(tenantId: number, name: string) {
+  const res = await request<{ data: ApiKey }>(`/super/v1/tenants/${tenantId}/api-keys`, {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  });
+  return res.data;
+}
+
+export async function toggleApiKey(tenantId: number, keyId: number) {
+  return request(`/super/v1/tenants/${tenantId}/api-keys/${keyId}/toggle`, { method: 'PATCH' });
+}
+
+export async function deleteApiKey(tenantId: number, keyId: number) {
+  return request(`/super/v1/tenants/${tenantId}/api-keys/${keyId}`, { method: 'DELETE' });
+}
+
+// ====== Users per Tenant ======
+export async function fetchTenantUsers(tenantId: number) {
+  const res = await request<{ data: { users: User[] } }>(`/super/v1/tenants/${tenantId}/users`);
+  return res.data.users;
+}

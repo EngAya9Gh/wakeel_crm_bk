@@ -18,8 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         
         $middleware->alias([
-            'api.key' => \App\Http\Middleware\ValidateApiKey::class,
-            'permission' => \App\Http\Middleware\CheckPermission::class,
+            'api.key'      => \App\Http\Middleware\ValidateApiKey::class,
+            'permission'   => \App\Http\Middleware\CheckPermission::class,
+            'set.tenant'   => \App\Http\Middleware\SetTenantContext::class,
+            'super.admin'  => \App\Http\Middleware\IsSuperAdmin::class,
         ]);
 
         // Fix for "Route [login] not defined" error

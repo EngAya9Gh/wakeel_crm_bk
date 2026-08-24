@@ -36,8 +36,8 @@ class AuthController extends Controller
         $refreshToken = $user->createToken('refresh_token', ['issue-access-token'], now()->addDays(30));
 
         return $this->successResponse([
-            'user' => $user->load(['team', 'role']),
-            'access_token' => $accessToken->plainTextToken,
+            'user'          => $user->load(['team', 'role', 'tenant']),
+            'access_token'  => $accessToken->plainTextToken,
             'refresh_token' => $refreshToken->plainTextToken,
         ], 'تم تسجيل الدخول بنجاح');
     }
