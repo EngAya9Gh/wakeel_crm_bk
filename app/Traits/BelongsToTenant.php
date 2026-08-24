@@ -36,7 +36,7 @@ trait BelongsToTenant
             // AND when the authenticated user is a Super Admin (no tenant_id).
             if (TenantContext::isResolved()) {
                 $query->where(
-                    static::qualifyColumn('tenant_id'),
+                    $query->getModel()->qualifyColumn('tenant_id'),
                     TenantContext::id()
                 );
             }
