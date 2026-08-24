@@ -13,6 +13,12 @@ cleanup() {
         echo ""
         echo "❌ [ERROR] Deployment failed or was interrupted!"
         echo "🔄 Automatically bringing the site back online to avoid 503 error..."
+        
+        # Ensure we are in the project root to run artisan
+        if [ ! -f "artisan" ] && [ -f "../artisan" ]; then
+            cd ..
+        fi
+        
         php artisan up || true
     fi
     exit $exit_code
@@ -95,10 +101,14 @@ echo ""
 echo "🎨 [8/9] Building Admin Panel (Next.js)..."
 if [ -d "$ADMIN_PANEL_DIR" ]; then
     cd "$ADMIN_PANEL_DIR"
-    npm ci --omit=dev
-    npm run build
+    if command -v npm >/dev/null 2>&1; then
+        npm ci --omit=dev
+        npm run build
+        echo "✅ Admin Panel built successfully."
+    else
+        echo "⚠️  npm is not installed on this server. Skipping Admin Panel build."
+    fi
     cd ..
-    echo "✅ Admin Panel built successfully."
 else
     echo "⚠️  Admin panel directory '$ADMIN_PANEL_DIR' not found. Skipping."
 fi
