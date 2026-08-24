@@ -16,7 +16,7 @@ class WhatsAppService implements WhatsAppServiceInterface
         protected string $apiKey = '',
         protected string $channelId = ''
     ) {
-        $tenant = TenantContext::getTenant();
+        $tenant = TenantContext::isResolved() ? TenantContext::current() : null;
         
         if ($tenant && !empty($tenant->settings)) {
             $this->baseUrl = $tenant->settings['whatsapp_provider'] ?? '';
