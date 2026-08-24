@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use App\Services\Tenants\TenantSetupService;
 
 /**
  * Tenant CRUD Controller (Super Admin only)
@@ -76,10 +77,10 @@ class TenantController extends Controller
             'phone'                   => 'nullable|string|max:20',
             'plan'                    => ['required', Rule::in(['basic', 'pro', 'enterprise'])],
             'is_active'               => 'boolean',
-            // Optional: create admin user for this tenant
-            'admin_name'              => 'nullable|string|max:255',
-            'admin_email'             => 'nullable|email|unique:users,email',
-            'admin_password'          => 'nullable|string|min:8',
+            // Required: create admin user for this tenant
+            'admin_name'              => 'required|string|max:255',
+            'admin_email'             => 'required|email|unique:users,email',
+            'admin_password'          => 'required|string|min:8',
         ]);
 
         return DB::transaction(function () use ($validated) {
@@ -92,16 +93,14 @@ class TenantController extends Controller
                 'is_active' => $validated['is_active'] ?? true,
             ]);
 
-            $adminUser = null;
-            if (!empty($validated['admin_email'])) {
-                $adminUser = User::withoutGlobalScope('tenant')->create([
-                    'tenant_id' => $tenant->id,
-                    'name'      => $validated['admin_name'] ?? 'مدير النظام',
-                    'email'     => $validated['admin_email'],
-                    'password'  => Hash::make($validated['admin_password'] ?? 'Password@123'),
-                    'is_active' => true,
-                ]);
-            }
+            // Delegate initialization to TenantSetupService
+            $setupService = app(TenantSetupService::class);
+            $adminUser = $setupService->setupNewTenant(
+                $tenant,
+                $validated['admin_name'],
+                $validated['admin_email'],
+                $validated['admin_password']
+            );
 
             return $this->createdResponse([
                 'tenant'     => $tenant,

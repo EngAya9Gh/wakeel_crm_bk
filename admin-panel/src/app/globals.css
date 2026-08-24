@@ -25,8 +25,9 @@
   --red-glow: rgba(239, 68, 68, 0.15);
   --yellow: #f59e0b;
   --yellow-glow: rgba(245, 158, 11, 0.15);
-  
-  --logo-filter: brightness(0) invert(0); /* Dark logo for light background */
+  --logo-src: url('/logo_dark.png');
+  --icon-src: url('/icon_dark.png');
+  --logo-filter: none; /* Removed filter logic since we have real images */
 }
 
 [data-theme="dark"] {
@@ -39,8 +40,9 @@
     --text-primary: #f9fafb;
     --text-secondary: #d1d5db;
     --text-muted: #6b7280;
-    
-    --logo-filter: brightness(0) invert(1); /* White logo for dark background */
+    --logo-src: url('/logo_light.png');
+    --icon-src: url('/icon_light.png');
+    --logo-filter: none;
 }
 
 * {
@@ -254,3 +256,7 @@ body {
 .table-dark tr:hover td { background: var(--surface-3); }
 .table-dark td:first-child { border-radius: 0 10px 10px 0; }
 .table-dark td:last-child { border-radius: 10px 0 0 10px; }
+
+/* Dynamic Brand Images */
+.brand-logo { content: var(--logo-src); }
+.brand-icon { content: var(--icon-src); }

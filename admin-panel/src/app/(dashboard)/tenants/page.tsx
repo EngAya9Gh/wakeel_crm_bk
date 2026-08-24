@@ -17,7 +17,7 @@ function Modal({ onClose, children }: { onClose: () => void; children: React.Rea
 }
 
 function AddTenantModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
-  const [form, setForm] = useState({ name: '', slug: '', email: '', plan: 'basic', admin_email: '', admin_password: 'Password@123' });
+  const [form, setForm] = useState({ name: '', slug: '', email: '', plan: 'basic', admin_name: '', admin_email: '', admin_password: 'Password@123' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -71,15 +71,19 @@ function AddTenantModal({ onClose, onSuccess }: { onClose: () => void; onSuccess
           </div>
         </div>
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20, marginBottom: 16 }}>
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>اختياري: إنشاء مستخدم مدير للمستأجر</p>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>إجباري: إنشاء حساب لمدير النظام</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div>
-              <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>بريد المدير</label>
-              <input className="input-dark" type="email" value={form.admin_email} onChange={e => update('admin_email', e.target.value)} placeholder="admin@company.com" />
+              <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>اسم المدير *</label>
+              <input className="input-dark" type="text" value={form.admin_name || ''} onChange={e => update('admin_name', e.target.value)} required placeholder="مدير النظام" />
             </div>
             <div>
-              <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>كلمة المرور</label>
-              <input className="input-dark" type="text" value={form.admin_password} onChange={e => update('admin_password', e.target.value)} placeholder="Password@123" />
+              <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>بريد المدير *</label>
+              <input className="input-dark" type="email" value={form.admin_email} onChange={e => update('admin_email', e.target.value)} required placeholder="admin@company.com" />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>كلمة المرور *</label>
+              <input className="input-dark" type="text" value={form.admin_password} onChange={e => update('admin_password', e.target.value)} required placeholder="Password@123" />
             </div>
           </div>
         </div>

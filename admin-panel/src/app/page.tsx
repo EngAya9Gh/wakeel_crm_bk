@@ -42,11 +42,11 @@ export default function LoginPage() {
       <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 440 }}>
         {/* Logo and Title */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 40 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 80, height: 80, borderRadius: 20, background: '#1c1c1c', border: '1px solid rgba(242,101,34,0.25)', marginBottom: 20, boxShadow: '0 0 40px rgba(242,101,34,0.2)' }}>
-            <img src="/icon.png" alt="Wakeel" style={{ width: 48, height: 48, objectFit: 'contain' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 80, height: 80, borderRadius: 20, background: 'var(--surface-3)', border: '1px solid var(--border)', marginBottom: 20, boxShadow: '0 0 40px var(--accent-glow)' }}>
+            <img className="brand-icon" alt="Wakeel" style={{ width: 48, height: 48, objectFit: 'contain' }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-            <img src="/logo.png" alt="Wakeel CRM" style={{ height: 32, objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+            <img className="brand-logo" alt="Wakeel CRM" style={{ height: 32, objectFit: 'contain', filter: 'var(--logo-filter)' }} />
           </div>
           <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 10, letterSpacing: '0.5px', textAlign: 'center' }}>لوحة الإدارة العليا</p>
         </div>

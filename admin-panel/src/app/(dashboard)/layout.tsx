@@ -67,7 +67,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
           {sidebarOpen && (
             <div>
-              <img src="/logo.png" alt="Wakeel CRM" style={{ height: 22, objectFit: 'contain', filter: 'var(--logo-filter)', display: 'block' }} />
+              <img className="brand-logo" alt="Wakeel CRM" style={{ height: 22, objectFit: 'contain', filter: 'var(--logo-filter)', display: 'block' }} />
               <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 3, letterSpacing: 0.5 }}>لوحة الإدارة العليا</div>
             </div>
           )}
