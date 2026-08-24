@@ -5,6 +5,23 @@ echo "🚀 Starting Deployment — Wakeel CRM"
 echo "=================================="
 
 # ──────────────────────────────────────────────────────────────────────────
+# ERROR HANDLING (Prevent stuck in maintenance mode)
+# ──────────────────────────────────────────────────────────────────────────
+cleanup() {
+    local exit_code=$?
+    if [ $exit_code -ne 0 ]; then
+        echo ""
+        echo "❌ [ERROR] Deployment failed or was interrupted!"
+        echo "🔄 Automatically bringing the site back online to avoid 503 error..."
+        php artisan up || true
+    fi
+    exit $exit_code
+}
+
+# Trap any exit (success or failure) and run cleanup
+trap cleanup EXIT
+
+# ──────────────────────────────────────────────────────────────────────────
 # CONFIGURATION
 # ──────────────────────────────────────────────────────────────────────────
 ADMIN_PANEL_DIR="admin-panel"   # Next.js admin panel directory
