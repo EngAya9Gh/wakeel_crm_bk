@@ -23,6 +23,10 @@ class AppointmentResource extends JsonResource
                 'id' => $this->client->id,
                 'name' => $this->client->name,
                 'phone' => $this->client->phone,
+                'status' => $this->client->status ? [
+                    'name' => $this->client->status->name,
+                    'color' => $this->client->status->color,
+                ] : null,
             ]),
             
             'user' => $this->whenLoaded('user', fn() => [

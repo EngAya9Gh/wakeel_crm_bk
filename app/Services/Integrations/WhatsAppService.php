@@ -19,21 +19,12 @@ class WhatsAppService implements WhatsAppServiceInterface
         $tenant = TenantContext::isResolved() ? TenantContext::current() : null;
         
         if ($tenant && !empty($tenant->settings)) {
-            $this->baseUrl = $tenant->settings['whatsapp_provider'] ?? '';
-            $this->apiKey = $tenant->settings['whatsapp_api_key'] ?? '';
-            // If the provider URL is UltraMsg, we typically append the instance key to the URL, but the user's .env had it like: https://provider.wakeel.cc/api/v1
-            // Let's assume whatsapp_provider is the full base URL. If it's just 'ultramsg' as saved in the DB from the UI, we might need a map.
-            // In the tenant UI we had a select: "ultramsg", "whatsapp_business", "twilio". But the user's .env had a direct URL. 
-            // Wait, looking at the UI code, the field is whatsapp_provider which is a string like "ultramsg". 
-            // The previous code used: config('services.whatsapp.base_url', 'https://provider.wakeel.cc/api/v1')
-            // I should use the tenant's base URL if provided, otherwise default to the old Wakeel provider if we want to be safe, but actually they should just put the full URL in `whatsapp_provider` OR we should map it.
-            // Since the user asked me how to use the .env keys, I told them to put WHATSAPP_API_BASE_URL into the settings. Wait! In the UI we had a select dropdown for Provider.
-            // Let's allow `whatsapp_provider` to be the actual URL or just use it as it is.
+            // Use tenant specific settings if available, otherwise fallback to defaults
+            $this->apiKey = $tenant->settings['whatsapp_api_key'] ?? $this->apiKey;
+            
             $provider = $tenant->settings['whatsapp_provider'] ?? '';
-            if (filter_var($provider, FILTER_VALIDATE_URL)) {
+            if (!empty($provider) && filter_var($provider, FILTER_VALIDATE_URL)) {
                 $this->baseUrl = rtrim($provider, '/');
-            } else {
-                $this->baseUrl = 'https://provider.wakeel.cc/api/v1'; // Default internal proxy
             }
         }
     }
