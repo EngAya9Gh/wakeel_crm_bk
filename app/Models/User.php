@@ -43,6 +43,15 @@ class User extends Authenticatable
     ];
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'permissions_list',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -84,6 +93,17 @@ class User extends Authenticatable
         if (!$this->role) return false;
         // In production, optimize this with caching
         return $this->role->permissions()->where('name', $permission)->exists();
+    }
+
+    public function getPermissionsListAttribute(): array
+    {
+        if ($this->isSuperAdmin()) {
+            return ['*']; // Super admin has all permissions
+        }
+        
+        if (!$this->role) return [];
+        
+        return $this->role->permissions()->pluck('name')->toArray();
     }
 
     public function commentMentions()
