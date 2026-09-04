@@ -29,7 +29,8 @@ class DeployController extends Controller
 
         // 2. Run the deployment script in the background
         // We use nohup and & so the PHP request doesn't wait for the script to finish
-        $command = "nohup bash {$scriptPath} > {$logPath} 2>&1 &";
+        $basePath = base_path();
+        $command = "cd {$basePath} && nohup bash {$scriptPath} > {$logPath} 2>&1 &";
         exec($command);
 
         Log::info('Deployment triggered successfully via webhook.');

@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Move to the script's directory (project root) to ensure all commands run in the correct context
+cd "$(dirname "$0")" || exit
+
 echo "🚀 Starting Deployment — Wakeel CRM"
 echo "=================================="
 
