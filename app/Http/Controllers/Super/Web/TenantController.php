@@ -48,7 +48,15 @@ class TenantController extends Controller
 
     public function show($id)
     {
-        return Inertia::render('Tenants/Show', ['id' => (string) $id]);
+        $tenant = Tenant::findOrFail($id);
+        
+        return Inertia::render('Tenants/Show', [
+            'id' => (string) $id,
+            'tenantData' => $tenant,
+            'availableModules' => config('features.available_modules'),
+            'plans' => config('features.plans'),
+            'enabledFeatures' => $tenant->enabledFeatures(),
+        ]);
     }
 
     public function updateSettings(Request $request, Tenant $tenant)
@@ -72,6 +80,25 @@ class TenantController extends Controller
         $tenant->update(['settings' => $settings]);
 
         return back()->with('success', 'تم حفظ الإعدادات بنجاح');
+    }
+
+    public function updateFeatures(Request $request, Tenant $tenant)
+    {
+        $validated = $request->validate([
+            'plan' => 'required|in:basic,pro,ultimate',
+            'features' => 'nullable|array',
+            'features.*' => 'string',
+        ]);
+
+        $settings = $tenant->settings ?? [];
+        $settings['features'] = $validated['features'] ?? [];
+
+        $tenant->update([
+            'plan' => $validated['plan'],
+            'settings' => $settings
+        ]);
+
+        return back()->with('success', 'تم تحديث ميزات المستأجر بنجاح');
     }
 
     public function generateApiKey(Request $request, Tenant $tenant)

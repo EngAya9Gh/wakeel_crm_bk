@@ -121,23 +121,26 @@ class Tenant extends Model
      */
     public function enabledFeatures(): array
     {
-        // Core features available to all CRM tenants
-        $defaults = ['clients', 'users', 'settings', 'appointments'];
+        // Core features from config
+        $defaults = collect(config('features.available_modules', []))
+            ->where('is_core', true)
+            ->keys()
+            ->toArray();
         
-        // Custom features enabled for this tenant (e.g. from plan or explicitly toggled)
+        // Features from the subscription plan
+        $planFeatures = config("features.plans.{$this->plan}.modules", []);
+        
+        // Custom features enabled for this tenant (add-ons)
         $custom = $this->settings['features'] ?? [];
         
-        // If they have whatsapp settings configured, we can implicitly allow whatsapp,
-        // but it's better to explicitly add it to settings['features'] in the future.
-        // For backwards compatibility:
+        // Backwards compatibility
         if (!empty($this->settings['whatsapp_api_key'])) {
             $custom[] = 'whatsapp';
         }
-
-        if (!empty($this->settings['invoices_enabled']) || $this->plan !== 'basic') {
+        if (!empty($this->settings['invoices_enabled'])) {
             $custom[] = 'invoices';
         }
         
-        return array_values(array_unique(array_merge($defaults, $custom)));
+        return array_values(array_unique(array_merge($defaults, $planFeatures, $custom)));
     }
 }

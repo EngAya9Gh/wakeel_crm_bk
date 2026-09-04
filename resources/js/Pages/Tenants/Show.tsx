@@ -8,8 +8,8 @@ import {
   fetchTenantUsers, type Tenant, type ApiKey, type User,
 } from '@/lib/api';
 
-const PLAN_LABELS: Record<string, string> = { basic: 'أساسي', pro: 'احترافي', enterprise: 'مؤسسي' };
-const TABS = ['الإعدادات العامة', 'مفاتيح API', 'المستخدمون'] as const;
+const PLAN_LABELS: Record<string, string> = { basic: 'أساسي', pro: 'احترافي', ultimate: 'متكاملة', enterprise: 'مؤسسي' };
+const TABS = ['الإعدادات العامة', 'الميزات والإضافات', 'مفاتيح API', 'المستخدمون'] as const;
 type Tab = typeof TABS[number];
 
 // ── Copied key display helper ──────────────────────────────────────────────
@@ -263,16 +263,109 @@ function UsersTab({ tenantId }: { tenantId: number }) {
   );
 }
 
+// ── Features Tab ────────────────────────────────────────────────────────────
+function FeaturesTab({ tenant, availableModules, plans }: any) {
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(tenant.plan || 'basic');
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>(tenant.settings?.features || []);
+
+  const currentPlanModules = plans[selectedPlan]?.modules || [];
+
+  const toggleFeature = (featureKey: string) => {
+    setSelectedFeatures(prev => 
+      prev.includes(featureKey) 
+        ? prev.filter(f => f !== featureKey)
+        : [...prev, featureKey]
+    );
+  };
+
+  async function save() {
+    setSaving(true);
+    try {
+      router.put(`/super/tenants/${tenant.id}/features`, {
+        plan: selectedPlan,
+        features: selectedFeatures
+      }, {
+        onSuccess: () => {
+          setSaved(true);
+          setTimeout(() => setSaved(false), 2500);
+        },
+        onFinish: () => setSaving(false)
+      });
+    } catch (e) {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Plan selection */}
+      <div className="glass-2" style={{ padding: 24 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', margin: '0 0 20px', textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>الباقة الأساسية</h3>
+        <div>
+          <select className="input-dark" value={selectedPlan} onChange={e => setSelectedPlan(e.target.value)} style={{ appearance: 'none', width: '100%', maxWidth: 300 }}>
+            {Object.entries(plans).map(([key, plan]: any) => (
+              <option key={key} value={key}>{plan.name}</option>
+            ))}
+          </select>
+          <div style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>
+            هذه الباقة تشمل الميزات التالية تلقائياً: {currentPlanModules.map((k:string) => availableModules[k]?.name_ar).join('، ') || 'لا توجد ميزات إضافية'}
+          </div>
+        </div>
+      </div>
+
+      {/* Add-ons */}
+      <div className="glass-2" style={{ padding: 24 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', margin: '0 0 20px', textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>الميزات الإضافية (Add-ons)</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          {Object.entries(availableModules).filter(([_, mod]: any) => !mod.is_core).map(([key, mod]: any) => {
+            const includedInPlan = currentPlanModules.includes(key);
+            const isChecked = includedInPlan || selectedFeatures.includes(key);
+
+            return (
+              <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px', background: 'var(--surface-3)', borderRadius: 12, cursor: includedInPlan ? 'not-allowed' : 'pointer', border: '1px solid var(--border)', opacity: includedInPlan ? 0.7 : 1 }}>
+                <input 
+                  type="checkbox" 
+                  checked={isChecked}
+                  disabled={includedInPlan}
+                  onChange={() => toggleFeature(key)}
+                  style={{ width: 18, height: 18, accentColor: 'var(--accent)' }}
+                />
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{mod.name_ar}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>{mod.name_en}</div>
+                  {includedInPlan && <div style={{ fontSize: 10, color: 'var(--accent)', marginTop: 4 }}>مشمول في الباقة</div>}
+                </div>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button className="btn-primary" onClick={save} disabled={saving} style={{ minWidth: 140, justifyContent: 'center', padding: '12px 28px' }}>
+          {saved ? '✓ تم الحفظ' : saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Main ───────────────────────────────────────────────────────────────────
-export default function TenantDetailPage({ id }: { id: string }) {
-  // router imported from inertia
-  const [tenant, setTenant] = useState<Tenant | null>(null);
+export default function TenantDetailPage({ id, tenantData, availableModules, plans, enabledFeatures }: any) {
+  const [tenant, setTenant] = useState<Tenant | null>(tenantData || null);
   const [activeTab, setActiveTab] = useState<Tab>('الإعدادات العامة');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!tenantData);
 
   useEffect(() => {
-    fetchTenant(Number(id)).then(setTenant).finally(() => setLoading(false));
-  }, [id]);
+    if (!tenantData) {
+      fetchTenant(Number(id)).then(setTenant).finally(() => setLoading(false));
+    } else {
+      setTenant(tenantData);
+      setLoading(false);
+    }
+  }, [id, tenantData]);
 
   if (loading) return (
     <div>
@@ -336,6 +429,7 @@ export default function TenantDetailPage({ id }: { id: string }) {
       {/* Tab content */}
       <div style={{ animation: 'fadeInUp 0.3s ease' }}>
         {activeTab === 'الإعدادات العامة' && <SettingsTab tenant={tenant} />}
+        {activeTab === 'الميزات والإضافات' && <FeaturesTab tenant={tenant} availableModules={availableModules} plans={plans} />}
         {activeTab === 'مفاتيح API' && <ApiKeysTab tenantId={tenant.id} />}
         {activeTab === 'المستخدمون' && <UsersTab tenantId={tenant.id} />}
       </div>
