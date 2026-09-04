@@ -99,13 +99,19 @@ php artisan event:cache
 # ──────────────────────────────────────────────────────────────────────────
 echo ""
 echo "🎨 [8/9] Building Frontend Assets..."
-if command -v npm >/dev/null 2>&1; then
-    npm install --legacy-peer-deps
-    npm run build
-    echo "✅ Frontend assets built successfully."
-else
-    echo "⚠️  npm is not installed on this server. Skipping asset compilation."
+if ! command -v npm >/dev/null 2>&1; then
+    echo "❌ [ERROR] npm is not installed on this server!"
+    echo "💡 In a professional setup, the server MUST compile its own assets."
+    echo "👉 Please install Node.js and NPM on the server."
+    exit 1
 fi
+
+echo "📦 Installing NPM dependencies..."
+npm install --legacy-peer-deps
+
+echo "🔨 Compiling assets for production..."
+npm run build
+echo "✅ Frontend assets built successfully."
 
 # ──────────────────────────────────────────────────────────────────────────
 # STEP 9 — Restart queue worker & exit maintenance
