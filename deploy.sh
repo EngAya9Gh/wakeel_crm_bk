@@ -95,22 +95,16 @@ php artisan view:cache
 php artisan event:cache
 
 # ──────────────────────────────────────────────────────────────────────────
-# STEP 8 — Admin Panel (Next.js) build
+# STEP 8 — Build Frontend Assets (Laravel Vite)
 # ──────────────────────────────────────────────────────────────────────────
 echo ""
-echo "🎨 [8/9] Building Admin Panel (Next.js)..."
-if [ -d "$ADMIN_PANEL_DIR" ]; then
-    cd "$ADMIN_PANEL_DIR"
-    if command -v npm >/dev/null 2>&1; then
-        npm ci --omit=dev
-        npm run build
-        echo "✅ Admin Panel built successfully."
-    else
-        echo "⚠️  npm is not installed on this server. Skipping Admin Panel build."
-    fi
-    cd ..
+echo "🎨 [8/9] Building Frontend Assets..."
+if command -v npm >/dev/null 2>&1; then
+    npm install --legacy-peer-deps
+    npm run build
+    echo "✅ Frontend assets built successfully."
 else
-    echo "⚠️  Admin panel directory '$ADMIN_PANEL_DIR' not found. Skipping."
+    echo "⚠️  npm is not installed on this server. Skipping asset compilation."
 fi
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -127,8 +121,8 @@ echo "✅  Deployment completed successfully!"
 echo "══════════════════════════════════════════"
 echo ""
 echo "📌 Important reminders:"
-echo "   • API Backend  : https://your-domain.com/api"
-echo "   • Admin Panel  : https://admin.your-domain.com  (or :3000 locally)"
-echo "   • Super Admin  : superadmin@wakeel.system"
+echo "   • Main App/API : https://your-domain.com"
+echo "   • Super Admin  : https://your-domain.com/super/login"
+echo "   • Login Email  : superadmin@wakeel.system (or admin@wakeel.cc)"
 echo "   • ⚠️  Change the Super Admin password after first login!"
 echo ""
