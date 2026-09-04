@@ -95,19 +95,32 @@ php artisan view:cache
 php artisan event:cache
 
 # ──────────────────────────────────────────────────────────────────────────
-# STEP 8 — Build Frontend Assets (Laravel Vite)
+# STEP 8 — Build Frontend Assets (Laravel Vite) - Professional CI/CD
 # ──────────────────────────────────────────────────────────────────────────
 echo ""
 echo "🎨 [8/9] Building Frontend Assets..."
+
+# Load environment profiles to ensure NVM/NPM paths are loaded in non-interactive shells
+[ -f ~/.bashrc ] && source ~/.bashrc
+[ -f ~/.profile ] && source ~/.profile
+[ -f ~/.bash_profile ] && source ~/.bash_profile
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+export PATH=$PATH:/usr/local/bin:/usr/local/n/versions/node/current/bin
+
 if ! command -v npm >/dev/null 2>&1; then
-    echo "❌ [ERROR] npm is not installed on this server!"
-    echo "💡 In a professional setup, the server MUST compile its own assets."
-    echo "👉 Please install Node.js and NPM on the server."
+    echo "❌ [ERROR] npm could not be found in the system PATH."
+    echo "💡 The deployment script runs in a non-interactive shell which might not load your Node.js path."
+    echo "👉 If you use NVM, ensure it is installed for the user running this script."
     exit 1
 fi
 
-echo "📦 Installing NPM dependencies..."
-npm install --legacy-peer-deps
+echo "📦 Installing NPM dependencies (Clean Install)..."
+if [ -f "package-lock.json" ]; then
+    npm ci --legacy-peer-deps
+else
+    npm install --legacy-peer-deps
+fi
 
 echo "🔨 Compiling assets for production..."
 npm run build

@@ -53,11 +53,13 @@ export default function DashboardLayout({ children }) {
         {/* Logo */}
         <div style={{ padding: sidebarOpen ? '20px 20px' : '20px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, background: 'var(--surface-2)', border: '1px solid rgba(242,101,34,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(242,101,34,0.2)' }}>
-            <div className="brand-icon" title="W" style={{ width: 28, height: 28 }} />
+            <img src="/icon_dark.png" alt="Wakeel" className="block dark:hidden" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+            <img src="/icon_light.png" alt="Wakeel" className="hidden dark:block" style={{ width: 28, height: 28, objectFit: 'contain' }} />
           </div>
           {sidebarOpen && (
             <div>
-              <div className="brand-logo" title="Wakeel CRM" style={{ width: 120, height: 22 }} />
+              <img src="/logo_dark.png" alt="Wakeel CRM" className="block dark:hidden" style={{ width: 120, height: 22, objectFit: 'contain' }} />
+              <img src="/logo_light.png" alt="Wakeel CRM" className="hidden dark:block" style={{ width: 120, height: 22, objectFit: 'contain' }} />
               <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 3, letterSpacing: 0.5 }}>لوحة الإدارة العليا</div>
             </div>
           )}

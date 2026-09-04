@@ -38,10 +38,12 @@ export default function LoginPage() {
         {/* Logo and Title */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 40 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 80, height: 80, borderRadius: 20, background: 'var(--surface-3)', border: '1px solid var(--border)', marginBottom: 20, boxShadow: '0 0 40px var(--accent-glow)' }}>
-            <div className="brand-icon" title="Wakeel" style={{ width: 48, height: 48 }} />
+            <img src="/icon_dark.png" alt="Wakeel" className="block dark:hidden" style={{ width: 48, height: 48, objectFit: 'contain' }} />
+            <img src="/icon_light.png" alt="Wakeel" className="hidden dark:block" style={{ width: 48, height: 48, objectFit: 'contain' }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-            <div className="brand-logo" title="Wakeel CRM" style={{ width: '100%', height: 32 }} />
+            <img src="/logo_dark.png" alt="Wakeel CRM" className="block dark:hidden" style={{ width: '100%', height: 32, objectFit: 'contain' }} />
+            <img src="/logo_light.png" alt="Wakeel CRM" className="hidden dark:block" style={{ width: '100%', height: 32, objectFit: 'contain' }} />
           </div>
           <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 10, letterSpacing: '0.5px', textAlign: 'center' }}>لوحة الإدارة العليا</p>
         </div>
