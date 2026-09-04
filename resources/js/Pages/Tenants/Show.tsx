@@ -268,9 +268,7 @@ function FeaturesTab({ tenant, availableModules, plans }: any) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(tenant.plan || 'basic');
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>(tenant.settings?.features || []);
-
-  const currentPlanModules = plans[selectedPlan]?.modules || [];
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>(tenant.settings?.features || plans[selectedPlan]?.modules || []);
 
   const toggleFeature = (featureKey: string) => {
     setSelectedFeatures(prev => 
@@ -278,6 +276,12 @@ function FeaturesTab({ tenant, availableModules, plans }: any) {
         ? prev.filter(f => f !== featureKey)
         : [...prev, featureKey]
     );
+  };
+
+  const handlePlanChange = (e: any) => {
+    const newPlan = e.target.value;
+    setSelectedPlan(newPlan);
+    setSelectedFeatures(plans[newPlan]?.modules || []);
   };
 
   async function save() {
@@ -304,13 +308,13 @@ function FeaturesTab({ tenant, availableModules, plans }: any) {
       <div className="glass-2" style={{ padding: 24 }}>
         <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', margin: '0 0 20px', textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>الباقة الأساسية</h3>
         <div>
-          <select className="input-dark" value={selectedPlan} onChange={e => setSelectedPlan(e.target.value)} style={{ appearance: 'none', width: '100%', maxWidth: 300 }}>
+          <select className="input-dark" value={selectedPlan} onChange={handlePlanChange} style={{ appearance: 'none', width: '100%', maxWidth: 300 }}>
             {Object.entries(plans).map(([key, plan]: any) => (
               <option key={key} value={key}>{plan.name}</option>
             ))}
           </select>
           <div style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>
-            هذه الباقة تشمل الميزات التالية تلقائياً: {currentPlanModules.map((k:string) => availableModules[k]?.name_ar).join('، ') || 'لا توجد ميزات إضافية'}
+            عند تغيير الباقة، سيتم تفعيل الميزات الافتراضية الخاصة بها تلقائياً في الأسفل.
           </div>
         </div>
       </div>
@@ -320,22 +324,19 @@ function FeaturesTab({ tenant, availableModules, plans }: any) {
         <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', margin: '0 0 20px', textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>الميزات الإضافية (Add-ons)</h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           {Object.entries(availableModules).filter(([_, mod]: any) => !mod.is_core).map(([key, mod]: any) => {
-            const includedInPlan = currentPlanModules.includes(key);
-            const isChecked = includedInPlan || selectedFeatures.includes(key);
+            const isChecked = selectedFeatures.includes(key);
 
             return (
-              <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px', background: 'var(--surface-3)', borderRadius: 12, cursor: includedInPlan ? 'not-allowed' : 'pointer', border: '1px solid var(--border)', opacity: includedInPlan ? 0.7 : 1 }}>
+              <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px', background: 'var(--surface-3)', borderRadius: 12, cursor: 'pointer', border: '1px solid var(--border)', transition: 'all 0.2s' }}>
                 <input 
                   type="checkbox" 
                   checked={isChecked}
-                  disabled={includedInPlan}
                   onChange={() => toggleFeature(key)}
                   style={{ width: 18, height: 18, accentColor: 'var(--accent)' }}
                 />
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{mod.name_ar}</div>
                   <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>{mod.name_en}</div>
-                  {includedInPlan && <div style={{ fontSize: 10, color: 'var(--accent)', marginTop: 4 }}>مشمول في الباقة</div>}
                 </div>
               </label>
             );

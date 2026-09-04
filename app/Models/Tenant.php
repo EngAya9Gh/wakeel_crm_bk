@@ -127,20 +127,22 @@ class Tenant extends Model
             ->keys()
             ->toArray();
         
-        // Features from the subscription plan
-        $planFeatures = config("features.plans.{$this->plan}.modules", []);
+        // Custom features enabled for this tenant
+        $custom = $this->settings['features'] ?? null;
         
-        // Custom features enabled for this tenant (add-ons)
-        $custom = $this->settings['features'] ?? [];
+        // If features were never explicitly set, fallback to the plan's default modules
+        if ($custom === null) {
+            $custom = config("features.plans.{$this->plan}.modules", []);
+        }
         
         // Backwards compatibility
-        if (!empty($this->settings['whatsapp_api_key'])) {
+        if (!empty($this->settings['whatsapp_api_key']) && !in_array('whatsapp', $custom)) {
             $custom[] = 'whatsapp';
         }
-        if (!empty($this->settings['invoices_enabled'])) {
+        if (!empty($this->settings['invoices_enabled']) && !in_array('invoices', $custom)) {
             $custom[] = 'invoices';
         }
         
-        return array_values(array_unique(array_merge($defaults, $planFeatures, $custom)));
+        return array_values(array_unique(array_merge($defaults, $custom)));
     }
 }
