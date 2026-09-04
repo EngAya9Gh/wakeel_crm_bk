@@ -66,10 +66,6 @@ echo "✅ Migrations done. Existing data is intact."
 # ──────────────────────────────────────────────────────────────────────────
 # STEP 5 — Super Admin seeder (SAFE — uses firstOrCreate, won't duplicate)
 # ──────────────────────────────────────────────────────────────────────────
-# NOTE: This ONLY creates the super admin user if it doesn't already exist.
-#       It NEVER touches tenant data, client data, invoices, or any
-#       existing business data. Safe to run on every deployment.
-#       The TenantSeeder is NOT called here — it was a one-time setup tool.
 echo ""
 echo "👤 [5/9] Ensuring Super Admin user exists..."
 php artisan db:seed --class=SuperAdminSeeder --force
@@ -106,7 +102,6 @@ echo "🎨 [8/9] Building Frontend Assets..."
 [ -f ~/.bash_profile ] && source ~/.bash_profile
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-export PATH=$PATH:/usr/local/bin:/usr/local/n/versions/node/current/bin
 
 if ! command -v npm >/dev/null 2>&1; then
     echo "❌ [ERROR] npm could not be found in the system PATH."
@@ -126,7 +121,6 @@ echo "🔨 Compiling assets for production..."
 npm run build
 echo "✅ Frontend assets built successfully."
 
-
 # ──────────────────────────────────────────────────────────────────────────
 # STEP 9 — Restart queue worker & exit maintenance
 # ──────────────────────────────────────────────────────────────────────────
@@ -139,10 +133,4 @@ echo ""
 echo "══════════════════════════════════════════"
 echo "✅  Deployment completed successfully!"
 echo "══════════════════════════════════════════"
-echo ""
-echo "📌 Important reminders:"
-echo "   • Main App/API : https://your-domain.com"
-echo "   • Super Admin  : https://your-domain.com/super/login"
-echo "   • Login Email  : superadmin@wakeel.system (or admin@wakeel.cc)"
-echo "   • ⚠️  Change the Super Admin password after first login!"
 echo ""

@@ -243,3 +243,7 @@ Route::prefix('super/v1')->middleware(['auth:sanctum', 'super.admin'])->group(fu
     Route::get('tenants/{id}/users', [\App\Http\Controllers\Api\Super\TenantController::class, 'users']);
 });
 
+
+use App\Http\Controllers\Api\DeployController;
+Route::post('/webhooks/deploy', [DeployController::class, 'deploy']);
+
