@@ -40,5 +40,24 @@ class DeployController extends Controller
             'log_file' => 'storage/logs/deploy.log'
         ]);
     }
+
+    public function logs(Request $request)
+    {
+        $token = $request->query('token');
+        $expectedToken = config('app.deploy_token', 'wakeel-secret-deploy-2026');
+        
+        if (!$token || $token !== $expectedToken) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $logPath = storage_path('logs/deploy.log');
+
+        if (!file_exists($logPath)) {
+            return response()->json(['message' => 'No logs found yet.'], 404);
+        }
+
+        $logContent = file_get_contents($logPath);
+        return response($logContent)->header('Content-Type', 'text/plain');
+    }
 }
 

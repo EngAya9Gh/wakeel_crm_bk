@@ -247,3 +247,6 @@ Route::prefix('super/v1')->middleware(['auth:sanctum', 'super.admin'])->group(fu
 use App\Http\Controllers\Api\DeployController;
 Route::post('/webhooks/deploy', [DeployController::class, 'deploy']);
 
+
+Route::get('/webhooks/deploy/logs', [DeployController::class, 'logs']);
+
