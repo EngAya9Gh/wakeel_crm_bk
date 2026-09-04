@@ -38,6 +38,11 @@ class AppointmentController extends Controller
             $request->input('per_page', 15)
         );
 
+        // Apply Resource mapping to the paginated items
+        $appointments->setCollection(
+            AppointmentResource::collection($appointments->getCollection())->collection
+        );
+
         return $this->paginatedResponse($appointments, 'تم جلب المواعيد بنجاح');
     }
 

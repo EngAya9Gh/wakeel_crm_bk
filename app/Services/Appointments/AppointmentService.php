@@ -13,7 +13,7 @@ class AppointmentService
     public function getAppointments(array $filters, int $perPage = 15): LengthAwarePaginator
     {
         $query = Appointment::query()
-            ->with(['client:id,name,phone', 'user:id,name']);
+            ->with(['client:id,name,phone,status_id', 'client.status:id,name,color', 'user:id,name']);
 
         // Apply Filters
         if (!empty($filters['status'])) {
@@ -92,7 +92,7 @@ class AppointmentService
         return Appointment::where('user_id', $userId)
             ->where('status', 'scheduled')
             ->whereBetween('start_at', [now(), now()->addDays($days)])
-            ->with(['client:id,name,phone'])
+            ->with(['client:id,name,phone,status_id', 'client.status:id,name,color'])
             ->orderBy('start_at')
             ->get();
     }
