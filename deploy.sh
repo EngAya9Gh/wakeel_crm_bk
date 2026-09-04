@@ -111,7 +111,7 @@ export PATH=$PATH:/usr/local/bin:/usr/local/n/versions/node/current/bin
 if ! command -v npm >/dev/null 2>&1; then
     echo "❌ [ERROR] npm could not be found in the system PATH."
     echo "💡 The deployment script runs in a non-interactive shell which might not load your Node.js path."
-    echo "👉 If you use NVM, ensure it is installed for the user running this script."
+    echo "👉 Please install Node.js (via NVM) for the user running this script."
     exit 1
 fi
 
@@ -125,6 +125,7 @@ fi
 echo "🔨 Compiling assets for production..."
 npm run build
 echo "✅ Frontend assets built successfully."
+
 
 # ──────────────────────────────────────────────────────────────────────────
 # STEP 9 — Restart queue worker & exit maintenance
