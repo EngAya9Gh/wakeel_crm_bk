@@ -15,14 +15,6 @@ cleanup() {
     if [ $exit_code -ne 0 ]; then
         echo ""
         echo "❌ [ERROR] Deployment failed or was interrupted!"
-        echo "🔄 Automatically bringing the site back online to avoid 503 error..."
-        
-        # Ensure we are in the project root to run artisan
-        if [ ! -f "artisan" ] && [ -f "../artisan" ]; then
-            cd ..
-        fi
-        
-        php artisan up || true
     fi
     exit $exit_code
 }
@@ -37,11 +29,11 @@ ADMIN_PANEL_DIR="admin-panel"   # Next.js admin panel directory
 APP_ENV="${APP_ENV:-production}"
 
 # ──────────────────────────────────────────────────────────────────────────
-# STEP 1 — Maintenance mode
+# STEP 1 — Maintenance mode (DISABLED for Zero Downtime)
 # ──────────────────────────────────────────────────────────────────────────
 echo ""
-echo "⏳ [1/9] Entering maintenance mode..."
-php artisan down || true
+echo "⏳ [1/9] Skipping maintenance mode (Zero-downtime deployment)..."
+# php artisan down || true
 
 # ──────────────────────────────────────────────────────────────────────────
 # STEP 2 — Pull latest code
@@ -125,12 +117,12 @@ npm run build
 echo "✅ Frontend assets built successfully."
 
 # ──────────────────────────────────────────────────────────────────────────
-# STEP 9 — Restart queue worker & exit maintenance
+# STEP 9 — Restart queue worker & cache
 # ──────────────────────────────────────────────────────────────────────────
 echo ""
-echo "🔄 [9/9] Restarting queue workers & going live..."
+echo "🔄 [9/9] Restarting queue workers..."
 php artisan queue:restart || true
-php artisan up
+# php artisan up
 
 echo ""
 echo "══════════════════════════════════════════"
