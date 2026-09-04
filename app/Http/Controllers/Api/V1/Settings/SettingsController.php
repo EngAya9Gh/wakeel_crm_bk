@@ -256,14 +256,35 @@ class SettingsController extends Controller
 
     public function storeProduct(Request $request)
     {
-        $product = Product::create($request->validate(['name' => 'required|string|max:255', 'price' => 'nullable|numeric', 'is_active' => 'boolean']));
+        $validated = $request->validate([
+            'name' => 'required|string|max:255', 
+            'price' => 'nullable|numeric', 
+            'is_active' => 'boolean'
+        ]);
+        
+        $validated['unit_price'] = $validated['price'] ?? 0;
+        unset($validated['price']);
+        
+        $product = Product::create($validated);
         return $this->createdResponse($product);
     }
 
     public function updateProduct(Request $request, int $id)
     {
         $product = Product::findOrFail($id);
-        $product->update($request->validate(['name' => 'sometimes|required|string|max:255', 'price' => 'nullable|numeric', 'is_active' => 'boolean']));
+        
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255', 
+            'price' => 'nullable|numeric', 
+            'is_active' => 'boolean'
+        ]);
+        
+        if (array_key_exists('price', $validated)) {
+            $validated['unit_price'] = $validated['price'] ?? 0;
+            unset($validated['price']);
+        }
+        
+        $product->update($validated);
         return $this->successResponse($product);
     }
 
@@ -434,6 +455,12 @@ class SettingsController extends Controller
 
     public function getPermissions()
     {
-        return $this->successResponse(Permission::get(['id', 'name', 'display_name', 'group']));
+        $tenant = \App\Services\TenantContext::get();
+        $features = $tenant ? $tenant->enabledFeatures() : [];
+        
+        $permissions = Permission::whereIn('group', $features)
+            ->get(['id', 'name', 'display_name', 'group']);
+            
+        return $this->successResponse($permissions);
     }
 }

@@ -90,9 +90,19 @@ class User extends Authenticatable
 
     public function hasPermission(string $permission): bool
     {
-        if (!$this->role) return false;
-        // In production, optimize this with caching
-        return $this->role->permissions()->where('name', $permission)->exists();
+        if ($this->isSuperAdmin()) return true;
+        
+        if (!$this->role || !$this->tenant) return false;
+        
+        $features = $this->tenant->enabledFeatures();
+        $feature = explode('.', $permission)[0];
+        
+        // Sometimes the prefix is not the feature, let's just check the DB to be safe
+        // Or we just check if it exists and its group is in features
+        return $this->role->permissions()
+            ->whereIn('group', $features)
+            ->where('name', $permission)
+            ->exists();
     }
 
     public function getPermissionsListAttribute(): array
@@ -101,9 +111,14 @@ class User extends Authenticatable
             return ['*']; // Super admin has all permissions
         }
         
-        if (!$this->role) return [];
+        if (!$this->role || !$this->tenant) return [];
         
-        return $this->role->permissions()->pluck('name')->toArray();
+        $features = $this->tenant->enabledFeatures();
+        
+        return $this->role->permissions()
+            ->whereIn('group', $features)
+            ->pluck('name')
+            ->toArray();
     }
 
     public function commentMentions()

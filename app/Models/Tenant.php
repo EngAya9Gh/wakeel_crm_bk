@@ -114,4 +114,30 @@ class Tenant extends Model
     {
         return $this->hasMany(Product::class);
     }
+
+    /**
+     * Get the enabled features/modules for this tenant.
+     * This is used to lock permissions if the tenant does not have the feature.
+     */
+    public function enabledFeatures(): array
+    {
+        // Core features available to all CRM tenants
+        $defaults = ['clients', 'users', 'settings', 'appointments'];
+        
+        // Custom features enabled for this tenant (e.g. from plan or explicitly toggled)
+        $custom = $this->settings['features'] ?? [];
+        
+        // If they have whatsapp settings configured, we can implicitly allow whatsapp,
+        // but it's better to explicitly add it to settings['features'] in the future.
+        // For backwards compatibility:
+        if (!empty($this->settings['whatsapp_api_key'])) {
+            $custom[] = 'whatsapp';
+        }
+
+        if (!empty($this->settings['invoices_enabled']) || $this->plan !== 'basic') {
+            $custom[] = 'invoices';
+        }
+        
+        return array_values(array_unique(array_merge($defaults, $custom)));
+    }
 }
