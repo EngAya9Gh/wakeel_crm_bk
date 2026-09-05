@@ -99,7 +99,7 @@ function AddTenantModal({ onClose, onSuccess }: { onClose: () => void; onSuccess
   );
 }
 
-export default function TenantsPage() {
+export default function TenantsPage({ plans = [] }: { plans: any[] }) {
   // router is imported from inertia
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
