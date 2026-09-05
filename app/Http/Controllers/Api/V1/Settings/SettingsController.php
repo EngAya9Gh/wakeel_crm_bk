@@ -455,7 +455,7 @@ class SettingsController extends Controller
 
     public function getPermissions()
     {
-        $tenant = \App\Services\TenantContext::get();
+        $tenant = \App\Services\TenantContext::isResolved() ? \App\Services\TenantContext::current() : null;
         $features = $tenant ? $tenant->enabledFeatures() : [];
         
         $permissions = Permission::whereIn('group', $features)
