@@ -53,6 +53,12 @@ return [
             'name_en' => 'Products & Services',
             'is_core' => false,
         ],
+        'inventory' => [
+            'key' => 'inventory',
+            'name_ar' => 'إدارة المخزون',
+            'name_en' => 'Inventory Management',
+            'is_core' => false,
+        ],
     ],
 
     /*
@@ -75,7 +81,7 @@ return [
         ],
         'ultimate' => [
             'name' => 'الباقة المتكاملة',
-            'modules' => ['appointments', 'invoices', 'whatsapp', 'products'],
+            'modules' => ['appointments', 'invoices', 'whatsapp', 'products', 'inventory'],
         ],
     ],
 ];

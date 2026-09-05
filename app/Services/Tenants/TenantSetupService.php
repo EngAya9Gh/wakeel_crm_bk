@@ -99,6 +99,11 @@ class TenantSetupService
             ['name' => 'invoices.create',        'display_name' => 'إنشاء فاتورة',           'group' => 'invoices'],
             ['name' => 'invoices.edit',          'display_name' => 'تعديل فاتورة',           'group' => 'invoices'],
             ['name' => 'invoices.delete',        'display_name' => 'حذف فاتورة',             'group' => 'invoices'],
+            // Inventory
+            ['name' => 'inventory.view',         'display_name' => 'عرض المخزون',           'group' => 'inventory'],
+            ['name' => 'inventory.create',       'display_name' => 'إضافة للمخزون',         'group' => 'inventory'],
+            ['name' => 'inventory.edit',         'display_name' => 'تعديل المخزون',         'group' => 'inventory'],
+            ['name' => 'inventory.delete',       'display_name' => 'حذف من المخزون',        'group' => 'inventory'],
             // Users
             ['name' => 'users.view',             'display_name' => 'عرض المستخدمين',         'group' => 'users'],
             ['name' => 'users.create',           'display_name' => 'إضافة مستخدم',           'group' => 'users'],
