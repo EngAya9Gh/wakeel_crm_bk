@@ -22,6 +22,7 @@ class Tenant extends Model
         'settings',
         'features',
         'plan',
+        'webhook_token',
     ];
 
     protected $casts = [
@@ -119,6 +120,16 @@ class Tenant extends Model
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function integrations(): HasMany
+    {
+        return $this->hasMany(TenantIntegration::class);
+    }
+
+    public function webhookLogs(): HasMany
+    {
+        return $this->hasMany(WebhookLog::class);
     }
 
     /**

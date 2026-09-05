@@ -189,6 +189,10 @@ Route::prefix('v1')->group(function () {
             Route::patch('api-keys/{id}/toggle', [\App\Http\Controllers\Api\V1\Settings\ApiKeyController::class, 'toggle']);
             Route::delete('api-keys/{id}', [\App\Http\Controllers\Api\V1\Settings\ApiKeyController::class, 'destroy']);
 
+            // Integrations Management
+            Route::get('integrations', [\App\Http\Controllers\Api\V1\Settings\IntegrationController::class, 'index']);
+            Route::put('integrations/{platform}', [\App\Http\Controllers\Api\V1\Settings\IntegrationController::class, 'update']);
+
             Route::get('permissions', [$s[0], 'getPermissions']);
         });
         
@@ -250,3 +254,10 @@ Route::post('/webhooks/deploy', [DeployController::class, 'deploy']);
 
 Route::get('/webhooks/deploy/logs', [DeployController::class, 'logs']);
 
+// =====================================================================
+// INTEGRATION WEBHOOKS (Public, unauthenticated, verified internally)
+// =====================================================================
+use App\Http\Controllers\Api\WebhookController;
+Route::get('/webhooks/meta/{token}', [WebhookController::class, 'verifyMeta']);
+Route::post('/webhooks/meta/{token}', [WebhookController::class, 'receiveMeta']);
+Route::post('/webhooks/tiktok/{token}', [WebhookController::class, 'receiveTikTok']);
