@@ -136,9 +136,10 @@ class Tenant extends Model
         // Custom features enabled for this tenant
         $custom = $this->features ?? null;
         
-        // If features were never explicitly set, fallback to the plan's default modules
+        // If features were never explicitly set, fallback to the plan's modules from DB
         if ($custom === null) {
-            $custom = config("features.plans.{$this->plan}.modules", []);
+            $plan = \App\Models\Plan::where('slug', $this->plan)->first();
+            $custom = $plan ? $plan->modules : [];
         }
         
         // Backwards compatibility for settings-based ones if they are still there

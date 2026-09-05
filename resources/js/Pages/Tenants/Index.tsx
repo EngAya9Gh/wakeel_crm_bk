@@ -179,9 +179,9 @@ export default function TenantsPage() {
         </div>
         <select className="input-dark" style={{ width: 160, appearance: 'none' }} value={planFilter} onChange={e => setPlanFilter(e.target.value)}>
           <option value="">كل الباقات</option>
-          <option value="basic">أساسي</option>
-          <option value="pro">احترافي</option>
-          <option value="enterprise">مؤسسي</option>
+          {plans.map((p: any) => (
+            <option key={p.slug} value={p.slug}>{p.name}</option>
+          ))}
         </select>
       </div>
 
@@ -218,7 +218,7 @@ export default function TenantsPage() {
                   </td>
                   <td>
                     <span className={`badge-${t.plan}`} style={{ padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600 }}>
-                      {PLAN_LABELS[t.plan]}
+                      {plans.find((p: any) => p.slug === t.plan)?.name || t.plan}
                     </span>
                   </td>
                   <td style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{t.users_count ?? '—'}</td>

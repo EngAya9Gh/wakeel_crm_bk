@@ -48,5 +48,8 @@ Route::prefix('super')->group(function () {
         Route::put('tenants/{tenant}/features', [\App\Http\Controllers\Super\Web\TenantController::class, 'updateFeatures'])->name('super.tenants.features.update');
         Route::post('tenants/{tenant}/api-keys', [\App\Http\Controllers\Super\Web\TenantController::class, 'generateApiKey'])->name('super.tenants.api-keys.store');
         Route::delete('tenants/{tenant}/api-keys/{apiKey}', [\App\Http\Controllers\Super\Web\TenantController::class, 'revokeApiKey'])->name('super.tenants.api-keys.destroy');
+        
+        // Plans
+        Route::resource('plans', \App\Http\Controllers\Super\Web\PlanController::class)->names('super.plans');
     });
 });

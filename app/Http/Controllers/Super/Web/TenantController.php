@@ -15,7 +15,10 @@ class TenantController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Tenants/Index');
+        $plans = \App\Models\Plan::where('is_active', true)->orderBy('sort_order')->get();
+        return Inertia::render('Tenants/Index', [
+            'plans' => $plans
+        ]);
     }
 
     public function store(Request $request)
@@ -29,10 +32,15 @@ class TenantController extends Controller
         try {
             DB::beginTransaction();
 
+            // Snapshot the plan features
+            $plan = \App\Models\Plan::where('slug', $validated['plan'] ?? 'basic')->first();
+            $features = $plan ? $plan->modules : [];
+
             $tenant = Tenant::create([
                 'name' => $validated['name'],
                 'slug' => $validated['slug'],
                 'plan' => $validated['plan'] ?? 'basic',
+                'features' => $features,
                 'is_active' => true,
             ]);
 
@@ -54,7 +62,7 @@ class TenantController extends Controller
             'id' => (string) $id,
             'tenantData' => $tenant,
             'availableModules' => config('features.available_modules'),
-            'plans' => config('features.plans'),
+            'plans' => \App\Models\Plan::where('is_active', true)->orderBy('sort_order')->get()->keyBy('slug'),
             'enabledFeatures' => $tenant->enabledFeatures(),
         ]);
     }
