@@ -151,14 +151,14 @@ class Tenant extends Model
         if ($custom === null) {
             $plan = \App\Models\Plan::where('slug', $this->plan)->first();
             $custom = $plan ? $plan->modules : [];
-        }
-        
-        // Backwards compatibility for settings-based ones if they are still there
-        if (!empty($this->settings['whatsapp_api_key']) && !in_array('whatsapp', $custom)) {
-            $custom[] = 'whatsapp';
-        }
-        if (!empty($this->settings['invoices_enabled']) && !in_array('invoices', $custom)) {
-            $custom[] = 'invoices';
+
+            // Backwards compatibility for settings-based ones if they are still there (only apply if features never explicitly set)
+            if (!empty($this->settings['whatsapp_api_key']) && !in_array('whatsapp', $custom)) {
+                $custom[] = 'whatsapp';
+            }
+            if (!empty($this->settings['invoices_enabled']) && !in_array('invoices', $custom)) {
+                $custom[] = 'invoices';
+            }
         }
         
         return array_values(array_unique(array_merge($defaults, $custom)));
