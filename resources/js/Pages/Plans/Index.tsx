@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import DashboardLayout from '../Layouts/DashboardLayout';
+import DashboardLayout from '../../Layouts/DashboardLayout';
 
 export default function PlansIndex({ plans }: { plans: any[] }) {
   return (

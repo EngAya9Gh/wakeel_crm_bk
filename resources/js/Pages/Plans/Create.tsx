@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { router } from '@inertiajs/react';
-import DashboardLayout from '../Layouts/DashboardLayout';
+import DashboardLayout from '../../Layouts/DashboardLayout';
 
 export default function PlansCreate({ availableModules }: { availableModules: Record<string, any> }) {
   const [form, setForm] = useState({
