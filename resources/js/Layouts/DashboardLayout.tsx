@@ -1,10 +1,28 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 
+const DashboardIcon = () => (
+  <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+  </svg>
+);
+
+const TenantsIcon = () => (
+  <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+  </svg>
+);
+
+const PlansIcon = () => (
+  <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+  </svg>
+);
+
 const NAV_ITEMS = [
-  { href: '/super/dashboard', icon: '◈', label: 'لوحة المعلومات' },
-  { href: '/super/tenants', icon: '⬡', label: 'المستأجرون' },
-  { href: '/super/plans', icon: '💎', label: 'الباقات' },
+  { href: '/super/dashboard', icon: <DashboardIcon />, label: 'لوحة المعلومات' },
+  { href: '/super/tenants', icon: <TenantsIcon />, label: 'المستأجرون' },
+  { href: '/super/plans', icon: <PlansIcon />, label: 'الباقات' },
 ];
 
 export default function DashboardLayout({ children }) {
