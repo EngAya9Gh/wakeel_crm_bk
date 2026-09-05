@@ -4,7 +4,7 @@ import { Link, usePage, router } from '@inertiajs/react';
 const NAV_ITEMS = [
   { href: '/super/dashboard', icon: '◈', label: 'لوحة المعلومات' },
   { href: '/super/tenants', icon: '⬡', label: 'المستأجرون' },
-  { href: '/super/plans', icon: '📦', label: 'الباقات' },
+  { href: '/super/plans', icon: '💎', label: 'الباقات' },
 ];
 
 export default function DashboardLayout({ children }) {

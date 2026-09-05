@@ -83,18 +83,19 @@ export default function PlansEdit({ plan, availableModules }: { plan: any, avail
             <h3 style={{ fontSize: 16, marginBottom: 12 }}>الميزات المتاحة (Modules)</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
               {Object.entries(availableModules).map(([key, mod]: [string, any]) => {
-                if (mod.is_core) return null;
+                const isCore = mod.is_core === true;
                 return (
-                  <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: 8, cursor: 'pointer', width: 'calc(50% - 6px)' }}>
+                  <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', background: isCore ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.05)', borderRadius: 8, cursor: isCore ? 'default' : 'pointer', width: 'calc(50% - 6px)', opacity: isCore ? 0.7 : 1 }}>
                     <input 
                       type="checkbox" 
-                      checked={form.modules.includes(key)} 
-                      onChange={() => toggleModule(key)} 
-                      style={{ width: 18, height: 18 }} 
+                      checked={isCore ? true : form.modules.includes(key)} 
+                      onChange={() => { if (!isCore) toggleModule(key); }} 
+                      disabled={isCore}
+                      style={{ width: 18, height: 18, cursor: isCore ? 'default' : 'pointer' }} 
                     />
                     <div>
-                      <div style={{ fontWeight: 600 }}>{mod.name}</div>
-                      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{mod.description}</div>
+                      <div style={{ fontWeight: 600 }}>{mod.name_ar} {isCore && <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: 4, marginRight: 6 }}>أساسي</span>}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{mod.name_en}</div>
                     </div>
                   </label>
                 );
