@@ -30,10 +30,19 @@ return Application::configure(basePath: dirname(__DIR__))
             'super.admin'  => \App\Http\Middleware\IsSuperAdmin::class,
         ]);
 
-        // Fix for "Route [login] not defined" error
-        // When unauthenticated users access API endpoints (like PDF download via browser), 
-        // Laravel tries to redirect to 'login'. preventing this ensures we fall through to the exception handler.
-        $middleware->redirectGuestsTo(fn () => null);
+        // Properly handle redirects for unauthenticated and authenticated users
+        $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {
+            if ($request->is('api/*')) return null;
+            if ($request->is('super/*')) return route('super.login');
+            return null; // For tenants or other web routes, adjust as needed
+        });
+
+        $middleware->redirectUsersTo(function (\Illuminate\Http\Request $request) {
+            if ($request->user() && $request->user()->isSuperAdmin()) {
+                return route('super.dashboard');
+            }
+            return '/';
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, \Illuminate\Http\Request $request) {
