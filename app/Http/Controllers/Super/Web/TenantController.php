@@ -90,12 +90,9 @@ class TenantController extends Controller
             'features.*' => 'string',
         ]);
 
-        $settings = $tenant->settings ?? [];
-        $settings['features'] = $validated['features'] ?? [];
-
         $tenant->update([
             'plan' => $validated['plan'],
-            'settings' => $settings
+            'features' => $validated['features'] ?? []
         ]);
 
         return back()->with('success', 'تم تحديث ميزات المستأجر بنجاح');

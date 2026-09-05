@@ -9,6 +9,7 @@ export interface Tenant {
   is_active: boolean;
   plan: 'basic' | 'pro' | 'enterprise';
   settings: Record<string, unknown> | null;
+  features?: string[] | null;
   users_count?: number;
   clients_count?: number;
   invoices_count?: number;

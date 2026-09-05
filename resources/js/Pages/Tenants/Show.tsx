@@ -268,7 +268,7 @@ function FeaturesTab({ tenant, availableModules, plans }: any) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(tenant.plan || 'basic');
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>(tenant.settings?.features || plans[selectedPlan]?.modules || []);
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>(tenant.features || plans[selectedPlan]?.modules || []);
 
   const toggleFeature = (featureKey: string) => {
     setSelectedFeatures(prev => 

@@ -20,12 +20,18 @@ class Tenant extends Model
         'logo',
         'is_active',
         'settings',
+        'features',
         'plan',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'settings'  => 'array',
+        'features'  => 'array',
+    ];
+
+    protected $appends = [
+        'enabled_features',
     ];
 
     // ===================== Relations =====================
@@ -128,14 +134,14 @@ class Tenant extends Model
             ->toArray();
         
         // Custom features enabled for this tenant
-        $custom = $this->settings['features'] ?? null;
+        $custom = $this->features ?? null;
         
         // If features were never explicitly set, fallback to the plan's default modules
         if ($custom === null) {
             $custom = config("features.plans.{$this->plan}.modules", []);
         }
         
-        // Backwards compatibility
+        // Backwards compatibility for settings-based ones if they are still there
         if (!empty($this->settings['whatsapp_api_key']) && !in_array('whatsapp', $custom)) {
             $custom[] = 'whatsapp';
         }
@@ -144,5 +150,10 @@ class Tenant extends Model
         }
         
         return array_values(array_unique(array_merge($defaults, $custom)));
+    }
+
+    public function getEnabledFeaturesAttribute(): array
+    {
+        return $this->enabledFeatures();
     }
 }
