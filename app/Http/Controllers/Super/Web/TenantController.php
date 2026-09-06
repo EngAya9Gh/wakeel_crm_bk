@@ -56,7 +56,7 @@ class TenantController extends Controller
 
     public function show($id)
     {
-        $tenant = Tenant::findOrFail($id);
+        $tenant = Tenant::withCount(['users', 'clients', 'apiKeys'])->findOrFail($id);
         
         return Inertia::render('Tenants/Show', [
             'id' => (string) $id,
