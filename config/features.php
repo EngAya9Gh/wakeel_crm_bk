@@ -59,6 +59,12 @@ return [
             'name_en' => 'Inventory Management',
             'is_core' => false,
         ],
+        'integrations' => [
+            'key' => 'integrations',
+            'name_ar' => 'الربط التلقائي لليدز (Meta & TikTok)',
+            'name_en' => 'Leads Integrations',
+            'is_core' => false,
+        ],
     ],
 
     /*

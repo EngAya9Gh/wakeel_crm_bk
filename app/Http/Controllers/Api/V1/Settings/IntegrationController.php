@@ -15,6 +15,10 @@ class IntegrationController extends Controller
     {
         $tenant = $request->user()->tenant;
 
+        if (!in_array('integrations', $tenant->enabled_features)) {
+            return response()->json(['error' => 'Integration feature is not enabled for this tenant'], 403);
+        }
+
         // Ensure tenant has a webhook_token
         if (!$tenant->webhook_token) {
             $tenant->webhook_token = Str::uuid()->toString();
@@ -47,6 +51,10 @@ class IntegrationController extends Controller
     public function update(Request $request, string $platform)
     {
         $tenant = $request->user()->tenant;
+        
+        if (!in_array('integrations', $tenant->enabled_features)) {
+            return response()->json(['error' => 'Integration feature is not enabled for this tenant'], 403);
+        }
         
         $validated = $request->validate([
             'is_active' => 'required|boolean',
