@@ -42,6 +42,12 @@ class EloquentInvoiceRepository implements InvoiceRepositoryInterface
             $query->where('created_at', '<=', $filters['date_to']);
         }
 
+        if (!empty($filters['tags']) && is_array($filters['tags'])) {
+            $query->whereHas('tags', function ($q) use ($filters) {
+                $q->whereIn('invoice_tags.id', $filters['tags']);
+            });
+        }
+
         if (!empty($filters['due_date_from'])) {
             $query->where('due_date', '>=', $filters['due_date_from']);
         }

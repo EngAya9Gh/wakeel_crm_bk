@@ -31,7 +31,7 @@ class InvoiceController extends Controller
         $filters = $request->only([
             'status', 'client_id', 'user_id', 'search',
             'date_from', 'date_to', 'due_date_from', 'due_date_to',
-            'sort_by', 'sort_dir'
+            'sort_by', 'sort_dir', 'tags'
         ]);
 
         $invoices = $this->invoiceService->getInvoices($filters, $request->input('per_page', 15));
@@ -112,5 +112,23 @@ class InvoiceController extends Controller
         $this->invoiceService->markAsSent($invoice, $channels);
 
         return $this->successResponse(null, 'تم إرسال الفاتورة للعميل بنجاح');
+    }
+
+    /**
+     * PATCH /api/v1/invoices/{invoice}/tags
+     */
+    public function updateTags(Request $request, Invoice $invoice)
+    {
+        $validated = $request->validate([
+            'tags' => 'present|array',
+            'tags.*' => 'integer|exists:invoice_tags,id'
+        ]);
+
+        $invoice->tags()->sync($validated['tags']);
+
+        return $this->successResponse(
+            new InvoiceResource($invoice->load('tags')),
+            'تم تحديث وسوم الفاتورة بنجاح'
+        );
     }
 }

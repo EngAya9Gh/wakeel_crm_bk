@@ -164,8 +164,23 @@ class EloquentClientRepository implements ClientRepositoryInterface
             $query->where('created_at', '<=', $filters['date_to']);
         }
 
+        $invoicesQuery = \App\Models\Invoice::query();
+        if (!empty($filters['date_from'])) {
+            $invoicesQuery->where('created_at', '>=', $filters['date_from']);
+        }
+        if (!empty($filters['date_to'])) {
+            $invoicesQuery->where('created_at', '<=', $filters['date_to']);
+        }
+
         return [
             'total_clients' => (clone $query)->count(),
+            'by_lead_rating' => (clone $query)->select('lead_rating', DB::raw('count(*) as count'))
+                ->groupBy('lead_rating')
+                ->get()
+                ->map(fn($item) => [
+                    'rating' => $item->lead_rating ?? 'N/A',
+                    'count' => $item->count
+                ]),
             'by_status' => (clone $query)->select('status_id', DB::raw('count(*) as count'))
                 ->groupBy('status_id')
                 ->with('status:id,name,color')
@@ -210,6 +225,17 @@ class EloquentClientRepository implements ClientRepositoryInterface
                     'converted_count' => (int)$item->converted_count,
                     'conversion_rate' => $item->total_assigned > 0 ? round(($item->converted_count / $item->total_assigned) * 100, 1) : 0,
                 ]),
+            'quotes_stats' => [
+                'total_quotes' => (clone $invoicesQuery)->count(),
+                'total_clients_with_quotes' => (clone $invoicesQuery)->distinct('client_id')->count('client_id'),
+                'by_status' => (clone $invoicesQuery)->select('status', DB::raw('count(*) as count'))
+                    ->groupBy('status')
+                    ->get()
+                    ->map(fn($item) => [
+                        'status' => $item->status ?? 'N/A',
+                        'count' => $item->count
+                    ]),
+            ],
         ];
     }
 

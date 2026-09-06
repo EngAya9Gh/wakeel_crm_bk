@@ -99,6 +99,7 @@ Route::prefix('v1')->group(function () {
             Route::patch('{invoice}/status', [\App\Http\Controllers\Api\V1\Invoices\InvoiceController::class, 'changeStatus']);
             Route::get('{invoice}/pdf', [\App\Http\Controllers\Api\V1\Invoices\InvoiceController::class, 'downloadPdf']);
             Route::post('{invoice}/send', [\App\Http\Controllers\Api\V1\Invoices\InvoiceController::class, 'sendToClient']);
+            Route::patch('{invoice}/tags', [\App\Http\Controllers\Api\V1\Invoices\InvoiceController::class, 'updateTags']);
             
             // Payments
             Route::get('{invoice}/payments', [\App\Http\Controllers\Api\V1\Invoices\InvoicePaymentController::class, 'index']);
