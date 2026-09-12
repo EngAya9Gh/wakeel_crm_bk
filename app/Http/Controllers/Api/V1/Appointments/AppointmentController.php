@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Appointments\StoreAppointmentRequest;
 use App\Http\Requests\Api\V1\Appointments\UpdateAppointmentRequest;
 use App\Http\Requests\Api\V1\Appointments\ChangeAppointmentStatusRequest;
+use App\Http\Requests\Api\V1\Appointments\RescheduleAppointmentRequest;
 use App\Http\Resources\Api\V1\Appointments\AppointmentResource;
 use App\Http\Resources\Api\V1\Appointments\AppointmentCollectionResource;
 use App\Models\Appointment;
@@ -97,9 +98,25 @@ class AppointmentController extends Controller
     {
         $updatedAppointment = $this->appointmentService->changeStatus(
             $appointment,
-            $request->input('status')
+            $request->input('status'),
+            $request->input('note'),
+            $request->user()->id
         );
 
         return $this->successResponse(new AppointmentResource($updatedAppointment), 'تم تغيير حالة الموعد بنجاح');
+    }
+
+    /**
+     * PATCH /api/v1/appointments/{appointment}/reschedule
+     */
+    public function reschedule(RescheduleAppointmentRequest $request, Appointment $appointment)
+    {
+        $updatedAppointment = $this->appointmentService->reschedule(
+            $appointment,
+            $request->validated(),
+            $request->user()->id
+        );
+
+        return $this->successResponse(new AppointmentResource($updatedAppointment), 'تم إعادة جدولة الموعد بنجاح');
     }
 }

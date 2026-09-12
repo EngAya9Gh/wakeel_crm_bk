@@ -116,6 +116,7 @@ Route::prefix('v1')->group(function () {
             Route::put('{appointment}', [\App\Http\Controllers\Api\V1\Appointments\AppointmentController::class, 'update']);
             Route::delete('{appointment}', [\App\Http\Controllers\Api\V1\Appointments\AppointmentController::class, 'destroy']);
             Route::patch('{appointment}/status', [\App\Http\Controllers\Api\V1\Appointments\AppointmentController::class, 'changeStatus']);
+            Route::patch('{appointment}/reschedule', [\App\Http\Controllers\Api\V1\Appointments\AppointmentController::class, 'reschedule']);
         });
         
         // Settings Module

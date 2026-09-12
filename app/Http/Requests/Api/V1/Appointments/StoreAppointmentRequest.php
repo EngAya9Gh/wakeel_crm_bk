@@ -17,6 +17,7 @@ class StoreAppointmentRequest extends FormRequest
     {
         return [
             'client_id' => ['required', 'exists:clients,id'],
+            'user_id' => ['nullable', 'exists:users,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'type' => ['required', 'in:meeting,call,visit'],
@@ -32,6 +33,7 @@ class StoreAppointmentRequest extends FormRequest
     {
         return [
             'client_id.required' => 'يجب تحديد العميل',
+            'user_id.exists' => 'الموظف المحدد غير موجود',
             'title.required' => 'عنوان الموعد مطلوب',
             'type.required' => 'نوع الموعد مطلوب',
             'start_at.required' => 'وقت البداية مطلوب',

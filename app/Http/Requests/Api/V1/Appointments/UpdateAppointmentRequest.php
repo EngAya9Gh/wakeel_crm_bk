@@ -10,6 +10,14 @@ class UpdateAppointmentRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        $appointment = $this->route('appointment');
+        
+        if ($appointment && $appointment->status === 'completed') {
+            if (!$this->user()->hasPermission('appointments.manage_completed')) {
+                return false; // Prevent update if completed
+            }
+        }
+        
         return true;
     }
 
@@ -17,6 +25,7 @@ class UpdateAppointmentRequest extends FormRequest
     {
         return [
             'client_id' => ['sometimes', 'exists:clients,id'],
+            'user_id' => ['nullable', 'exists:users,id'],
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'type' => ['sometimes', 'in:meeting,call,visit'],

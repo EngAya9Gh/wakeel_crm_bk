@@ -61,10 +61,20 @@ class AppointmentService
     public function createAppointment(array $data, int $userId): Appointment
     {
         return DB::transaction(function () use ($data, $userId) {
-            $data['user_id'] = $userId;
+            $data['user_id'] = $data['user_id'] ?? $userId;
             $data['status'] = $data['status'] ?? 'scheduled';
             
-            return Appointment::create($data)->load(['client', 'user']);
+            $appointment = Appointment::create($data);
+            
+            \App\Models\ClientTimeline::create([
+                'client_id' => $appointment->client_id,
+                'user_id' => $userId,
+                'event_type' => 'appointment_created',
+                'description' => 'تم إنشاء موعد جديد: ' . $appointment->title,
+                'metadata' => ['appointment_id' => $appointment->id],
+            ]);
+            
+            return $appointment->load(['client', 'user']);
         });
     }
 
@@ -81,10 +91,60 @@ class AppointmentService
         return $appointment->delete();
     }
 
-    public function changeStatus(Appointment $appointment, string $status): Appointment
+    public function changeStatus(Appointment $appointment, string $status, ?string $note = null, ?int $userId = null): Appointment
     {
-        $appointment->update(['status' => $status]);
-        return $appointment->load(['client', 'user']);
+        return DB::transaction(function () use ($appointment, $status, $note, $userId) {
+            $oldStatus = $appointment->status;
+            $appointment->update(['status' => $status]);
+            
+            if ($userId) {
+                \App\Models\ClientTimeline::create([
+                    'client_id' => $appointment->client_id,
+                    'user_id' => $userId,
+                    'event_type' => 'appointment_status_changed',
+                    'description' => "تم تغيير حالة الموعد ({$appointment->title}) من {$oldStatus} إلى {$status}",
+                    'metadata' => ['appointment_id' => $appointment->id, 'old_status' => $oldStatus, 'new_status' => $status],
+                ]);
+                
+                if ($note) {
+                    \App\Models\Comment::create([
+                        'client_id' => $appointment->client_id,
+                        'user_id' => $userId,
+                        'content' => "ملاحظة تغيير حالة الموعد ({$appointment->title}): " . $note,
+                    ]);
+                }
+            }
+            
+            return $appointment->load(['client', 'user']);
+        });
+    }
+
+    public function reschedule(Appointment $appointment, array $data, int $userId): Appointment
+    {
+        return DB::transaction(function () use ($appointment, $data, $userId) {
+            $appointment->update([
+                'start_at' => $data['start_at'],
+                'end_at' => $data['end_at'],
+            ]);
+            
+            \App\Models\ClientTimeline::create([
+                'client_id' => $appointment->client_id,
+                'user_id' => $userId,
+                'event_type' => 'appointment_rescheduled',
+                'description' => 'تم إعادة جدولة الموعد: ' . $appointment->title,
+                'metadata' => ['appointment_id' => $appointment->id],
+            ]);
+            
+            if (!empty($data['note'])) {
+                \App\Models\Comment::create([
+                    'client_id' => $appointment->client_id,
+                    'user_id' => $userId,
+                    'content' => "ملاحظة إعادة جدولة الموعد ({$appointment->title}): " . $data['note'],
+                ]);
+            }
+            
+            return $appointment->load(['client', 'user']);
+        });
     }
 
     public function getUpcomingAppointments(int $userId, int $days = 7): \Illuminate\Database\Eloquent\Collection

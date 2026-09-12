@@ -6,7 +6,7 @@ namespace App\Http\Requests\Api\V1\Appointments;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ChangeAppointmentStatusRequest extends FormRequest
+class RescheduleAppointmentRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -24,7 +24,8 @@ class ChangeAppointmentStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', 'in:scheduled,completed,cancelled,no_show'],
+            'start_at' => ['required', 'date', 'after_or_equal:now'],
+            'end_at' => ['required', 'date', 'after:start_at'],
             'note' => ['nullable', 'string', 'max:1000'],
         ];
     }

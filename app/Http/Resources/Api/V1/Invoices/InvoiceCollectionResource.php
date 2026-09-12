@@ -20,6 +20,11 @@ class InvoiceCollectionResource extends ResourceCollection
                 'total' => number_format((float) $invoice->total, 2, '.', ''),
                 'due_date' => $invoice->due_date?->format('Y-m-d'),
                 'items_count' => $invoice->items_count ?? $invoice->items->count(),
+                'tags' => $invoice->relationLoaded('tags') ? $invoice->tags->map(fn($tag) => [
+                    'id' => $tag->id,
+                    'name' => $tag->name,
+                    'color' => $tag->color,
+                ]) : [],
                 'created_at' => $invoice->created_at->format('Y-m-d'),
             ]),
             'meta' => [
