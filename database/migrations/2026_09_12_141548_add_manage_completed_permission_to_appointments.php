@@ -15,7 +15,7 @@ return new class extends Migration
             'name' => 'appointments.manage_completed',
         ], [
             'display_name' => 'إدارة المواعيد المكتملة',
-            'group' => 'المواعيد'
+            'group' => 'appointments'
         ]);
 
         // Attach to Super Admin
