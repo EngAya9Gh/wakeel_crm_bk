@@ -59,6 +59,27 @@ class WhatsAppWebhookController extends Controller
             }
         }
         
+        if ($event === 'client.sync') {
+            $phone = $data['phone'] ?? null;
+            $name = $data['name'] ?? 'WhatsApp Lead';
+            if ($phone) {
+                $phone = preg_replace('/[^0-9]/', '', $phone);
+                $existingClient = \App\Models\Client::where('tenant_id', $tenant->id)->where('phone', $phone)->first();
+                if (!$existingClient) {
+                    $source = \App\Models\Source::where('name', 'واتساب')->first();
+                    $defaultStatus = \App\Models\ClientStatus::where('is_default', true)->first();
+                    \App\Models\Client::create([
+                        'tenant_id' => $tenant->id,
+                        'name' => $name,
+                        'phone' => $phone,
+                        'status_id' => $defaultStatus ? $defaultStatus->id : 1,
+                        'source_id' => $source ? $source->id : null,
+                        'priority' => 'medium',
+                    ]);
+                }
+            }
+        }
+        
         // Depending on event type (e.g., 'message.incoming' or 'message.status') 
         // we can dispatch jobs or process it directly.
         // TODO: Add further event processing logic here when needed.
