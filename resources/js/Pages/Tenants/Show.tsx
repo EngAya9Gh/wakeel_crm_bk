@@ -194,6 +194,7 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
           هذه الإعدادات تربط المستأجر بمزود خدمة الواتساب لإرسال الإشعارات الفورية للعملاء الجدد.
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          {/* Provider Settings */}
           <div>
             <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>رابط المزود الأساسي (Base URL)</label>
             <input className="input-dark" value={form.whatsapp_provider} onChange={e => update('whatsapp_provider', e.target.value)} placeholder="https://provider.wakeel.cc/api/v1" style={{ direction: 'ltr' }} />
@@ -202,13 +203,71 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
             <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>رقم الهاتف (WhatsApp)</label>
             <input className="input-dark" value={form.whatsapp_phone_number} onChange={e => update('whatsapp_phone_number', e.target.value)} placeholder="+966xxxxxxxxx" style={{ direction: 'ltr' }} />
           </div>
-          <div>
+          <div style={{ gridColumn: '1 / -1' }}>
             <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>API Key الخاص بالمزود</label>
             <input className="input-dark" type="text" value={form.whatsapp_api_key} onChange={e => update('whatsapp_api_key', e.target.value)} placeholder="instance_key_..." style={{ direction: 'ltr', fontFamily: 'monospace' }} />
           </div>
-          <div>
+
+          <div style={{ gridColumn: '1 / -1', height: 1, background: 'var(--border)', margin: '10px 0' }} />
+
+          {/* Webhook Settings for Provider */}
+          <div style={{ gridColumn: '1 / -1' }}>
+            <label style={{ fontSize: 12, color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, fontWeight: 700 }}>
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              بيانات ربط الويب هوك (تُنسخ وتوضع في لوحة المزود)
+            </label>
+          </div>
+          
+          <div style={{ gridColumn: '1 / -1' }}>
+            <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span>رابط الويب هوك (Webhook URL)</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>انسخ هذا الرابط وضعه في المزود</span>
+            </label>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <input 
+                className="input-dark" 
+                type="text" 
+                readOnly 
+                value={`https://app.wakeel.cc/api/public/v1/webhook/whatsapp/${tenant.id}`} 
+                style={{ direction: 'ltr', fontFamily: 'monospace', flex: 1, background: 'var(--surface-1)', color: 'var(--text-muted)' }} 
+              />
+              <button 
+                type="button"
+                className="btn-secondary" 
+                onClick={() => {
+                  navigator.clipboard.writeText(`https://app.wakeel.cc/api/public/v1/webhook/whatsapp/${tenant.id}`);
+                  alert('تم نسخ الرابط بنجاح!');
+                }}
+                style={{ padding: '0 16px', whiteSpace: 'nowrap' }}
+              >
+                نسخ الرابط
+              </button>
+            </div>
+          </div>
+
+          <div style={{ gridColumn: '1 / -1' }}>
             <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Webhook Secret</label>
-            <input className="input-dark" type="text" value={form.whatsapp_webhook_secret} onChange={e => update('whatsapp_webhook_secret', e.target.value)} placeholder="webhook_secret_..." style={{ direction: 'ltr', fontFamily: 'monospace' }} />
+            <div style={{ display: 'flex', gap: 10 }}>
+              <input 
+                className="input-dark" 
+                type="text" 
+                value={form.whatsapp_webhook_secret} 
+                onChange={e => update('whatsapp_webhook_secret', e.target.value)} 
+                placeholder="secret_key_..." 
+                style={{ direction: 'ltr', fontFamily: 'monospace', flex: 1 }} 
+              />
+              <button 
+                type="button"
+                className="btn-secondary" 
+                onClick={() => {
+                  const randomSecret = 'wh_sec_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                  update('whatsapp_webhook_secret', randomSecret);
+                }}
+                style={{ padding: '0 16px', whiteSpace: 'nowrap' }}
+              >
+                توليد مفتاح عشوائي
+              </button>
+            </div>
           </div>
         </div>
       </div>
