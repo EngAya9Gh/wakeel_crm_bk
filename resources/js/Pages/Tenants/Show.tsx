@@ -246,7 +246,10 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
           </div>
 
           <div style={{ gridColumn: '1 / -1' }}>
-            <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Webhook Secret</label>
+            <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span>Webhook Secret</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>ضعه في المزود مقابل الكلمة: <strong style={{ color: 'var(--text-primary)', userSelect: 'all' }}>X-Webhook-Key</strong></span>
+            </label>
             <div style={{ display: 'flex', gap: 10 }}>
               <input 
                 className="input-dark" 
