@@ -125,14 +125,28 @@ class TenantController extends Controller
             'plan'      => ['sometimes', Rule::in(['basic', 'pro', 'enterprise'])],
             'is_active' => 'boolean',
             'settings'  => 'nullable|array',
-            // WhatsApp / messaging provider settings (stored in settings JSON)
-            'settings.whatsapp_provider'       => 'nullable|string',
-            'settings.whatsapp_api_key'        => 'nullable|string',
-            'settings.whatsapp_phone_number'   => 'nullable|string',
-            'settings.whatsapp_webhook_secret' => 'nullable|string',
         ]);
 
+        if ($request->has('settings')) {
+            // Validate the nested settings specifically
+            $settingsData = $request->validate([
+                'settings.whatsapp_provider'       => 'nullable|string',
+                'settings.whatsapp_api_key'        => 'nullable|string',
+                'settings.whatsapp_phone_number'   => 'nullable|string',
+                'settings.whatsapp_webhook_secret' => 'nullable|string',
+            ])['settings'] ?? [];
+
+            // Merge with existing settings so we don't lose other keys (like invoices_enabled)
+            $existingSettings = $tenant->settings ?? [];
+            $validated['settings'] = array_merge($existingSettings, $settingsData);
+        }
+
         $tenant->update($validated);
+
+        // Force a save to ensure JSON columns are updated properly in some edge cases
+        if ($tenant->isDirty('settings')) {
+            $tenant->save();
+        }
 
         return $this->successResponse($tenant->fresh(), 'تم تحديث بيانات المستأجر');
     }
