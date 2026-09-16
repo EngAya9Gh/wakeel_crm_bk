@@ -122,7 +122,7 @@ class TenantController extends Controller
             'slug'      => ['sometimes', 'string', 'max:100', 'regex:/^[a-z0-9\-]+$/', Rule::unique('tenants', 'slug')->ignore($tenant->id)],
             'email'     => 'nullable|email|max:255',
             'phone'     => 'nullable|string|max:20',
-            'plan'      => ['sometimes', Rule::in(['basic', 'pro', 'enterprise'])],
+            'plan'      => ['sometimes', Rule::in(['basic', 'pro', 'ultimate', 'enterprise'])],
             'is_active' => 'boolean',
             'settings'  => 'nullable|array',
         ]);
