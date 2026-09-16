@@ -40,7 +40,7 @@ class WhatsAppWebhookController extends Controller
         }
 
         // Set Tenant Context for the remainder of the request
-        TenantContext::setTenantId($tenant->id);
+        TenantContext::set($tenant);
 
         // Process Event
         $event = $request->input('event');
