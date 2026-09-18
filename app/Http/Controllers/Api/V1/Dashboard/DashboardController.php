@@ -152,7 +152,8 @@ class DashboardController extends Controller
             ]);
 
         // آخر التعليقات/المتابعات
-        $recentComments = Comment::with(['client:id,name', 'user:id,name', 'type:id,name,color'])
+        $recentComments = Comment::whereHas('client')
+            ->with(['client:id,name', 'user:id,name', 'type:id,name,color'])
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get()
