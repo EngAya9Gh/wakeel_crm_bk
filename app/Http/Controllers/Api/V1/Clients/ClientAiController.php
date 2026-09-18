@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Log;
 
 class ClientAiController extends Controller
 {
+    use \App\Traits\ApiResponse;
+
     private AiService $aiService;
 
     public function __construct(AiService $aiService)
