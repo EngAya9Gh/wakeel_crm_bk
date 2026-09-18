@@ -84,6 +84,12 @@ Route::prefix('v1')->group(function () {
             Route::post('{id}/procedures', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'addProcedure']);
             Route::put('{clientId}/procedures/{procedureId}', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'updateProcedure']);
             Route::delete('{clientId}/procedures/{procedureId}', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'deleteProcedure']);
+
+            // AI Assistant
+            Route::get('{client}/ai/insights', [\App\Http\Controllers\Api\V1\Clients\ClientAiController::class, 'insights']);
+            Route::get('{client}/ai/history', [\App\Http\Controllers\Api\V1\Clients\ClientAiController::class, 'history']);
+            Route::get('{client}/ai/sessions/{session}', [\App\Http\Controllers\Api\V1\Clients\ClientAiController::class, 'getSession']);
+            Route::post('{client}/ai/ask', [\App\Http\Controllers\Api\V1\Clients\ClientAiController::class, 'ask']);
         });
 
         // Users Module
