@@ -226,8 +226,6 @@ class EloquentClientRepository implements ClientRepositoryInterface
                     'conversion_rate' => $item->total_assigned > 0 ? round(($item->converted_count / $item->total_assigned) * 100, 1) : 0,
                 ]),
             'quotes_stats' => [
-                'total_quotes' => (clone $invoicesQuery)->count(),
-                'total_clients_with_quotes' => (clone $invoicesQuery)->distinct('client_id')->count('client_id'),
                 'by_status' => (clone $invoicesQuery)->select('status', DB::raw('count(*) as count'))
                     ->groupBy('status')
                     ->get()
