@@ -35,8 +35,10 @@ class ClientAiController extends Controller
             ->first();
 
         if ($insightSession) {
+            $messages = $insightSession->messages;
+            $lastMessage = end($messages);
             return $this->successResponse([
-                'insights' => json_decode(end($insightSession->messages)['content'], true)
+                'insights' => json_decode($lastMessage['content'], true)
             ]);
         }
 
@@ -71,12 +73,13 @@ class ClientAiController extends Controller
 
         // Save session
         ClientAiSession::create([
+            'tenant_id' => $client->tenant_id,
             'client_id' => $client->id,
-            'user_id' => auth()->id(),
+            'user_id' => auth('sanctum')->id() ?? auth()->id(),
             'title' => 'Insights ' . now()->format('Y-m-d'),
             'type' => 'insight',
             'messages' => [
-                ['role' => 'user', 'content' => $prompt],
+                ['role' => 'system', 'content' => $prompt],
                 ['role' => 'assistant', 'content' => json_encode($insightsData, JSON_UNESCAPED_UNICODE)]
             ]
         ]);
@@ -111,7 +114,7 @@ class ClientAiController extends Controller
             // Include context only in the first message of a session
             $context = $this->aiService->buildClientContext($client);
             $messages[] = [
-                'role' => 'user',
+                'role' => 'system',
                 'content' => "هذه بيانات العميل التي سأسألك عنها:\n" . $context
             ];
         }
@@ -128,8 +131,12 @@ class ClientAiController extends Controller
         
         $fullPrompt = "تاريخ المحادثة السابقة:\n";
         foreach ($messages as $msg) {
-            $role = $msg['role'] === 'user' ? 'المستخدم' : 'أنت (المساعد)';
-            $fullPrompt .= "{$role}: {$msg['content']}\n\n";
+            if ($msg['role'] === 'system') {
+                $fullPrompt .= "بيانات النظام:\n{$msg['content']}\n\n";
+            } else {
+                $role = $msg['role'] === 'user' ? 'المستخدم' : 'أنت (المساعد)';
+                $fullPrompt .= "{$role}: {$msg['content']}\n\n";
+            }
         }
         $fullPrompt .= "أجب على السؤال الأخير بناءً على البيانات. السؤال الأخير هو: {$question}";
 
@@ -156,8 +163,9 @@ class ClientAiController extends Controller
             ]);
         } else {
             $session = ClientAiSession::create([
+                'tenant_id' => $client->tenant_id,
                 'client_id' => $client->id,
-                'user_id' => auth()->id(),
+                'user_id' => auth('sanctum')->id() ?? auth()->id(),
                 'title' => mb_substr($question, 0, 50) . '...',
                 'type' => $type,
                 'messages' => $messages
