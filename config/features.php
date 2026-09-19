@@ -65,6 +65,12 @@ return [
             'name_en' => 'Leads Integrations',
             'is_core' => false,
         ],
+        'ai_agent' => [
+            'key' => 'ai_agent',
+            'name_ar' => 'المساعد الذكي (الذكاء الاصطناعي)',
+            'name_en' => 'AI Assistant',
+            'is_core' => false,
+        ],
     ],
 
     /*

@@ -22,11 +22,20 @@ class ClientAiController extends Controller
         $this->aiService = $aiService;
     }
 
+    private function hasAiFeature(Client $client): bool
+    {
+        return in_array('ai_agent', $client->tenant->enabled_features ?? []);
+    }
+
     /**
      * Get automatically generated insights for the client (Lead Score, Summary).
      */
     public function insights(Client $client)
     {
+        if (!$this->hasAiFeature($client)) {
+            return $this->errorResponse('ميزة الذكاء الاصطناعي غير متاحة في باقتك الحالية', 403);
+        }
+
         // First check if we have a recent insight session (last 24 hours)
         $insightSession = ClientAiSession::where('client_id', $client->id)
             ->where('type', 'insight')
@@ -94,6 +103,10 @@ class ClientAiController extends Controller
      */
     public function ask(Request $request, Client $client)
     {
+        if (!$this->hasAiFeature($client)) {
+            return $this->errorResponse('ميزة الذكاء الاصطناعي غير متاحة في باقتك الحالية', 403);
+        }
+
         $request->validate([
             'question' => 'required|string|max:1000',
             'type' => 'nullable|in:quick_action,free_chat',
@@ -184,6 +197,10 @@ class ClientAiController extends Controller
      */
     public function history(Client $client)
     {
+        if (!$this->hasAiFeature($client)) {
+            return $this->errorResponse('ميزة الذكاء الاصطناعي غير متاحة في باقتك الحالية', 403);
+        }
+
         $sessions = ClientAiSession::where('client_id', $client->id)
             ->whereIn('type', ['free_chat', 'quick_action'])
             ->with('user:id,name')
@@ -200,6 +217,10 @@ class ClientAiController extends Controller
      */
     public function getSession(Client $client, $sessionId)
     {
+        if (!$this->hasAiFeature($client)) {
+            return $this->errorResponse('ميزة الذكاء الاصطناعي غير متاحة في باقتك الحالية', 403);
+        }
+
         $session = ClientAiSession::where('client_id', $client->id)->findOrFail($sessionId);
 
         return $this->successResponse([
