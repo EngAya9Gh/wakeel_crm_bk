@@ -43,6 +43,25 @@ return [
             'prompt' => 'اقترح طرقًا لتحسين جودة خدمة العملاء وسرعة الاستجابة',
             'icon' => 'support_agent',
         ],
+        // New powerful system-wide questions
+        [
+            'id' => 'sales_performance_comparison',
+            'question' => 'مقارنة أداء المبيعات',
+            'prompt' => 'هل أداء المبيعات هذا الشهر أفضل من الشهر الماضي؟ قم بتحليل الأرقام وأعطني الخلاصة.',
+            'icon' => 'query_stats',
+        ],
+        [
+            'id' => 'employee_performance',
+            'question' => 'أداء الموظفين وتحفيزهم',
+            'prompt' => 'من هو الموظف الذي يحقق أفضل النتائج؟ وأي الموظفين يحتاج لدعم أو تحفيز بناءً على نسبة الصفقات المرفوضة أو المتأخرة لديه؟',
+            'icon' => 'groups',
+        ],
+        [
+            'id' => 'top_lead_sources',
+            'question' => 'أفضل مصادر العملاء',
+            'prompt' => 'ما هي أكثر منصات الإعلانات أو المصادر التي تجلب لنا مبيعات ناجحة (صفقات مغلقة) مقارنة بالبقية؟',
+            'icon' => 'pie_chart',
+        ],
     ],
 
     // Client-specific questions suitable for client profile AI assistant
@@ -82,6 +101,13 @@ return [
             'question' => 'تقييم المخاطر',
             'prompt' => 'قم بتقييم مخاطر خسارة هذا العميل وقدم استراتيجيات للاحتفاظ به',
             'icon' => 'warning',
+        ],
+        // New custom questions based on our features
+        [
+            'id' => 'client_comments_summary',
+            'question' => 'تلخيص التعليقات والقرارات',
+            'prompt' => 'قم بقراءة التعليقات المسجلة على هذا العميل، ولخص أهم النقاط والقرارات التي تم اتخاذها بشأنه',
+            'icon' => 'forum',
         ],
         // Existing questions from the current mobile app
         [

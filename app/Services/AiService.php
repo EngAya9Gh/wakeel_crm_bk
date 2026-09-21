@@ -106,6 +106,95 @@ class AiService
             })
         ];
 
+    /**
+     * Build context for the entire tenant system to send to the general AI.
+     */
+    public function buildTenantContext(\App\Models\Tenant $tenant): string
+    {
+        // Total Clients grouped by status
+        $clientsByStatus = \App\Models\Client::where('tenant_id', $tenant->id)
+            ->selectRaw('status_id, count(*) as total')
+            ->groupBy('status_id')
+            ->with('status')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'status' => $item->status ? $item->status->name : 'غير محدد',
+                    'count' => $item->total,
+                ];
+            });
+
+        // Total Clients grouped by source
+        $clientsBySource = \App\Models\Client::where('tenant_id', $tenant->id)
+            ->selectRaw('source_id, count(*) as total')
+            ->groupBy('source_id')
+            ->with('source')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'source' => $item->source ? $item->source->name : 'غير محدد',
+                    'count' => $item->total,
+                ];
+            });
+
+        // Invoices Summary
+        $invoicesSummary = \App\Models\Invoice::where('tenant_id', $tenant->id)
+            ->selectRaw('status, count(*) as count, sum(total) as total_amount')
+            ->groupBy('status')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'status' => $item->status, // e.g. paid, unpaid, partially_paid
+                    'count' => $item->count,
+                    'total_amount' => $item->total_amount,
+                ];
+            });
+
+        // Recent System Activities (Globally)
+        $recentTimeline = \App\Models\ClientTimeline::where('tenant_id', $tenant->id)
+            ->with(['user', 'client'])
+            ->latest()
+            ->take(20)
+            ->get()
+            ->map(function ($event) {
+                return [
+                    'date' => $event->created_at?->format('Y-m-d H:i'),
+                    'user' => $event->user?->name ?? 'النظام',
+                    'client' => $event->client?->name ?? 'غير معروف',
+                    'action' => $event->action,
+                ];
+            });
+
+        // Users Performance (Top 5 users by number of clients assigned)
+        $topUsers = \App\Models\Client::where('tenant_id', $tenant->id)
+            ->whereNotNull('assigned_to')
+            ->selectRaw('assigned_to, count(*) as total')
+            ->groupBy('assigned_to')
+            ->with('assignedTo')
+            ->orderByDesc('total')
+            ->take(5)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'employee' => $item->assignedTo?->name,
+                    'clients_count' => $item->total,
+                ];
+            });
+
+        $context = [
+            'company_info' => [
+                'name' => $tenant->name,
+                'total_clients' => \App\Models\Client::where('tenant_id', $tenant->id)->count(),
+                'total_invoices' => \App\Models\Invoice::where('tenant_id', $tenant->id)->count(),
+                'total_employees' => \App\Models\User::where('tenant_id', $tenant->id)->count(),
+            ],
+            'clients_by_status' => $clientsByStatus,
+            'clients_by_source' => $clientsBySource,
+            'invoices_summary' => $invoicesSummary,
+            'top_performing_employees' => $topUsers,
+            'recent_system_activities' => $recentTimeline,
+        ];
+
         return json_encode($context, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }
 }

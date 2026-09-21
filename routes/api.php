@@ -85,6 +85,8 @@ Route::prefix('v1')->group(function () {
             Route::put('{clientId}/procedures/{procedureId}', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'updateProcedure']);
             Route::delete('{clientId}/procedures/{procedureId}', [\App\Http\Controllers\Api\V1\Clients\ClientController::class, 'deleteProcedure']);
 
+            // Client AI General Suggestions
+            Route::get('ai/suggestions', [\App\Http\Controllers\Api\V1\Clients\ClientAiController::class, 'suggestions']);
             // AI Assistant
             Route::get('{client}/ai/insights', [\App\Http\Controllers\Api\V1\Clients\ClientAiController::class, 'insights']);
             Route::get('{client}/ai/history', [\App\Http\Controllers\Api\V1\Clients\ClientAiController::class, 'history']);
@@ -95,6 +97,11 @@ Route::prefix('v1')->group(function () {
         // Users Module
         Route::apiResource('users', \App\Http\Controllers\Api\V1\Users\UserController::class);
         
+        // Tenant/System AI Assistant
+        Route::get('ai/history', [\App\Http\Controllers\Api\V1\Tenant\TenantAiController::class, 'history']);
+        Route::get('ai/sessions/{session}', [\App\Http\Controllers\Api\V1\Tenant\TenantAiController::class, 'getSession']);
+        Route::post('ai/ask', [\App\Http\Controllers\Api\V1\Tenant\TenantAiController::class, 'ask']);
+
         // Invoices Module
         Route::prefix('invoices')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\V1\Invoices\InvoiceController::class, 'index']);
