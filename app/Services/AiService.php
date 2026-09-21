@@ -106,6 +106,9 @@ class AiService
             })
         ];
 
+        return json_encode($context, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    }
+
     /**
      * Build context for the entire tenant system to send to the general AI.
      */
