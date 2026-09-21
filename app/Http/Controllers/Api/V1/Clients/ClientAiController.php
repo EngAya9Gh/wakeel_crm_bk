@@ -227,4 +227,19 @@ class ClientAiController extends Controller
             'session' => $session
         ]);
     }
+
+    /**
+     * Get AI predefined suggestions.
+     */
+    public function suggestions()
+    {
+        $tenant = \App\Models\TenantContext::get();
+        if ($tenant && !in_array('ai_agent', $tenant->enabled_features)) {
+            return $this->errorResponse('ميزة الذكاء الاصطناعي غير متاحة في باقتك الحالية', 403);
+        }
+
+        return $this->successResponse([
+            'suggestions' => config('ai_suggestions')
+        ]);
+    }
 }
