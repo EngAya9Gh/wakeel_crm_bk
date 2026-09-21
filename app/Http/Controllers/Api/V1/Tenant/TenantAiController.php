@@ -24,7 +24,7 @@ class TenantAiController extends Controller
 
     private function hasAiFeature(): bool
     {
-        $tenant = TenantContext::get();
+        $tenant = TenantContext::current();
         return $tenant && in_array('ai_agent', $tenant->enabled_features ?? []);
     }
 
@@ -46,7 +46,7 @@ class TenantAiController extends Controller
         $question = $request->input('question');
         $type = $request->input('type', 'general');
         $sessionId = $request->input('session_id');
-        $tenant = TenantContext::get();
+        $tenant = TenantContext::current();
 
         $session = null;
         $messages = [];
@@ -129,7 +129,7 @@ class TenantAiController extends Controller
             return $this->errorResponse('ميزة الذكاء الاصطناعي غير متاحة في باقتك الحالية', 403);
         }
 
-        $tenant = TenantContext::get();
+        $tenant = TenantContext::current();
         $sessions = TenantAiSession::where('tenant_id', $tenant->id)
             ->with('user:id,name')
             ->orderBy('created_at', 'desc')
@@ -149,7 +149,7 @@ class TenantAiController extends Controller
             return $this->errorResponse('ميزة الذكاء الاصطناعي غير متاحة في باقتك الحالية', 403);
         }
 
-        $tenant = TenantContext::get();
+        $tenant = TenantContext::current();
         $session = TenantAiSession::where('tenant_id', $tenant->id)->findOrFail($sessionId);
 
         return $this->successResponse([
