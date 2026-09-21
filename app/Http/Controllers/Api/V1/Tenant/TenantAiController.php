@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Api\V1\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Models\TenantAiSession;
-use App\Models\TenantContext;
+use App\Services\TenantContext;
 use App\Services\AiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;

@@ -233,7 +233,7 @@ class ClientAiController extends Controller
      */
     public function suggestions()
     {
-        $tenant = \App\Models\TenantContext::get();
+        $tenant = \App\Services\TenantContext::get();
         if ($tenant && !in_array('ai_agent', $tenant->enabled_features)) {
             return $this->errorResponse('ميزة الذكاء الاصطناعي غير متاحة في باقتك الحالية', 403);
         }
