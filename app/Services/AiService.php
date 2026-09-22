@@ -51,7 +51,7 @@ class AiService
         try {
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
-            ])->post("{$this->baseUrl}/gemini-1.5-flash:generateContent?key=" . trim($this->apiKey), $payload);
+            ])->post("{$this->baseUrl}/gemini-flash-latest:generateContent?key=" . trim($this->apiKey), $payload);
 
             if ($response->successful()) {
                 $data = $response->json();
