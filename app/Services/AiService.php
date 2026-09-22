@@ -154,7 +154,9 @@ class AiService
             });
 
         // Recent System Activities (Globally)
-        $recentTimeline = \App\Models\ClientTimeline::where('tenant_id', $tenant->id)
+        $recentTimeline = \App\Models\ClientTimeline::whereHas('client', function ($q) use ($tenant) {
+                $q->where('tenant_id', $tenant->id);
+            })
             ->with(['user', 'client'])
             ->latest()
             ->take(20)
