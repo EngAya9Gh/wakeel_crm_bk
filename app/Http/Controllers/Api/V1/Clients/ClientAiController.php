@@ -238,8 +238,29 @@ class ClientAiController extends Controller
             return $this->errorResponse('ميزة الذكاء الاصطناعي غير متاحة في باقتك الحالية', 403);
         }
 
+        $suggestions = config('ai_suggestions');
+
+        if ($request->has('client_id')) {
+            $client = \App\Models\Client::find($request->client_id);
+            if ($client && $client->phone) {
+                $whatsAppService = app(\App\Services\Integrations\Contracts\WhatsAppServiceInterface::class);
+                $threadId = $whatsAppService->findThreadByPhone($client->phone);
+                
+                if ($threadId) {
+                    $suggestions['client_specific'][] = [
+                        'id' => 'summarize_whatsapp',
+                        'question' => 'تلخيص أحدث محادثة واتساب',
+                        'prompt' => 'قم بتلخيص أحدث محادثة واتساب مع العميل', // This text is standard, frontend calls the special route
+                        'icon' => 'whatsapp', // Or chat, or generic icon
+                        'action' => 'summarize_whatsapp', // special flag for frontend
+                        'thread_id' => $threadId
+                    ];
+                }
+            }
+        }
+
         return $this->successResponse([
-            'suggestions' => config('ai_suggestions')
+            'suggestions' => $suggestions
         ]);
     }
 
