@@ -231,7 +231,7 @@ class ClientAiController extends Controller
     /**
      * Get AI predefined suggestions.
      */
-    public function suggestions()
+    public function suggestions(\Illuminate\Http\Request $request)
     {
         $tenant = \App\Services\TenantContext::current();
         if ($tenant && !in_array('ai_agent', $tenant->enabled_features)) {
