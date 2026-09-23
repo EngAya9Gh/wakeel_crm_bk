@@ -36,15 +36,15 @@ class ClientAiController extends Controller
             return $this->errorResponse('ميزة الذكاء الاصطناعي غير متاحة في باقتك الحالية', 403);
         }
 
-        // First check if we have a recent insight session (last 24 hours)
-        $insightSession = ClientAiSession::where('client_id', $client->id)
+        // Fetch the latest insight regardless of date
+        $lastInsightSession = ClientAiSession::where('client_id', $client->id)
             ->where('type', 'insight')
-            ->where('created_at', '>=', now()->subDay())
             ->latest()
             ->first();
 
-        if ($insightSession) {
-            $messages = $insightSession->messages;
+        // If it exists and is less than 24 hours old, return it
+        if ($lastInsightSession && $lastInsightSession->created_at >= now()->subDay()) {
+            $messages = $lastInsightSession->messages;
             $lastMessage = end($messages);
             return $this->successResponse([
                 'insights' => json_decode($lastMessage['content'], true)
@@ -68,6 +68,15 @@ class ClientAiController extends Controller
         ]);
 
         if (!$response) {
+            // Fallback to old insight if AI fails due to high demand
+            if ($lastInsightSession) {
+                $messages = $lastInsightSession->messages;
+                $lastMessage = end($messages);
+                return $this->successResponse([
+                    'insights' => json_decode($lastMessage['content'], true),
+                    'is_fallback' => true // Optionally let frontend know it's an old cache
+                ]);
+            }
             return $this->errorResponse('فشل في الاتصال بخدمة الذكاء الاصطناعي', 500);
         }
 
