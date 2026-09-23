@@ -305,16 +305,31 @@ class ClientAiController extends Controller
         // Assuming array structure has 'fromMe' and 'body'.
         $formattedMsgs = [];
         foreach ($messages as $msg) {
-            $sender = !empty($msg['fromMe']) ? 'الموظف' : 'العميل';
-            $text = $msg['body'] ?? '';
-            if (!empty($text)) {
+            $isFromMe = !empty($msg['fromMe']) || !empty($msg['is_from_me']) || ($msg['direction'] ?? '') === 'outbound' || ($msg['type'] ?? '') === 'sent';
+            $sender = $isFromMe ? 'الموظف' : 'العميل';
+            
+            $text = $msg['body'] ?? $msg['text'] ?? $msg['content'] ?? $msg['message'] ?? '';
+            
+            if (is_array($text)) {
+                $text = $text['body'] ?? $text['text'] ?? json_encode($text, JSON_UNESCAPED_UNICODE);
+            }
+
+            if (empty($text) && isset($msg['text']['body'])) {
+                $text = $msg['text']['body'];
+            }
+            
+            if (!empty($text) && is_string($text)) {
                 $formattedMsgs[] = "{$sender}: {$text}";
             }
         }
         
         // Reverse to ensure oldest to newest if the API returns newest first (common pagination)
-        // Let's just output them as returned, if it's confusing AI will figure it out, but array_reverse is safer if it's latest first
-        $chatText .= implode("\n", array_reverse($formattedMsgs));
+        if (empty($formattedMsgs)) {
+            // Fallback: If we couldn't parse the specific keys, let the AI read the raw JSON
+            $chatText .= json_encode($messages, JSON_UNESCAPED_UNICODE);
+        } else {
+            $chatText .= implode("\n", array_reverse($formattedMsgs));
+        }
 
         $prompt = $chatText . "\n\nالمطلوب:\nقم بقراءة هذه المحادثة بعناية واستخراج ملخص واضح لأهم النقاط التي تمت مناقشتها، والطلبات أو المشاكل، والقرارات المتخذة (إن وجدت).";
 
