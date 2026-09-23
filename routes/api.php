@@ -92,6 +92,7 @@ Route::prefix('v1')->group(function () {
             Route::get('{client}/ai/history', [\App\Http\Controllers\Api\V1\Clients\ClientAiController::class, 'history']);
             Route::get('{client}/ai/sessions/{session}', [\App\Http\Controllers\Api\V1\Clients\ClientAiController::class, 'getSession']);
             Route::post('{client}/ai/ask', [\App\Http\Controllers\Api\V1\Clients\ClientAiController::class, 'ask']);
+            Route::post('{client}/ai/summarize-whatsapp', [\App\Http\Controllers\Api\V1\Clients\ClientAiController::class, 'summarizeWhatsapp']);
         });
 
         // Users Module

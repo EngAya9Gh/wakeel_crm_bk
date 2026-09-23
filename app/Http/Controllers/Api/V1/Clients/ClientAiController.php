@@ -242,4 +242,106 @@ class ClientAiController extends Controller
             'suggestions' => config('ai_suggestions')
         ]);
     }
+
+    /**
+     * Summarize a WhatsApp conversation from the provider.
+     */
+    public function summarizeWhatsapp(Request $request, Client $client)
+    {
+        if (!$this->hasAiFeature($client)) {
+            return $this->errorResponse('ميزة الذكاء الاصطناعي غير متاحة في باقتك الحالية', 403);
+        }
+
+        $request->validate([
+            'thread_id' => 'required|string',
+            'session_id' => 'nullable|exists:client_ai_sessions,id'
+        ]);
+
+        $threadId = $request->input('thread_id');
+        $sessionId = $request->input('session_id');
+
+        $whatsAppService = app(\App\Services\Integrations\Contracts\WhatsAppServiceInterface::class);
+        $messages = $whatsAppService->getThreadMessages($threadId);
+
+        if (empty($messages)) {
+            return $this->errorResponse('لم يتم العثور على رسائل نصية في هذه المحادثة', 404);
+        }
+
+        // Format messages for the AI
+        $chatText = "هذه رسائل من محادثة واتساب بين العميل وفريق العمل:\n\n";
+        
+        // Reverse if they come newest first, usually they do from APIs, we want chronological for AI
+        // Or if they come oldest first, don't reverse. We'll just loop. Usually chronological is better.
+        // Assuming array structure has 'fromMe' and 'body'.
+        $formattedMsgs = [];
+        foreach ($messages as $msg) {
+            $sender = !empty($msg['fromMe']) ? 'الموظف' : 'العميل';
+            $text = $msg['body'] ?? '';
+            if (!empty($text)) {
+                $formattedMsgs[] = "{$sender}: {$text}";
+            }
+        }
+        
+        // Reverse to ensure oldest to newest if the API returns newest first (common pagination)
+        // Let's just output them as returned, if it's confusing AI will figure it out, but array_reverse is safer if it's latest first
+        $chatText .= implode("\n", array_reverse($formattedMsgs));
+
+        $prompt = $chatText . "\n\nالمطلوب:\nقم بقراءة هذه المحادثة بعناية واستخراج ملخص واضح لأهم النقاط التي تمت مناقشتها، والطلبات أو المشاكل، والقرارات المتخذة (إن وجدت).";
+
+        $answer = $this->aiService->ask($prompt, [
+            "أنت خبير في المبيعات وخدمة العملاء تتحدث العربية بطلاقة.",
+            "مهمتك تلخيص محادثات الواتساب لتوفير وقت الموظف ومساعدته على فهم حالة العميل بسرعة.",
+            "استخدم أسلوب النقاط (Bullet points) للتلخيص، وتجنب السرد الطويل الممل."
+        ]);
+
+        if (!$answer) {
+            return $this->errorResponse('فشل في الاتصال بخدمة الذكاء الاصطناعي', 500);
+        }
+
+        $session = null;
+        $sessionMessages = [];
+
+        if ($sessionId) {
+            $session = ClientAiSession::where('client_id', $client->id)->findOrFail($sessionId);
+            $sessionMessages = $session->messages;
+        } else {
+            $context = $this->aiService->buildClientContext($client);
+            $sessionMessages[] = [
+                'role' => 'system',
+                'content' => "هذه بيانات العميل التي سأسألك عنها:\n" . $context
+            ];
+        }
+
+        $sessionMessages[] = [
+            'role' => 'user',
+            'content' => "قم بتلخيص محادثة الواتساب الحالية."
+        ];
+        
+        $sessionMessages[] = [
+            'role' => 'assistant',
+            'content' => $answer
+        ];
+
+        if ($session) {
+            $session->update([
+                'messages' => $sessionMessages,
+                'updated_at' => now(),
+            ]);
+        } else {
+            $session = ClientAiSession::create([
+                'tenant_id' => $client->tenant_id,
+                'client_id' => $client->id,
+                'user_id' => auth('sanctum')->id() ?? auth()->id(),
+                'title' => "تلخيص محادثة واتساب",
+                'type' => 'quick_action',
+                'messages' => $sessionMessages
+            ]);
+        }
+
+        return $this->successResponse([
+            'session_id' => $session->id,
+            'answer' => $answer,
+            'messages' => $sessionMessages
+        ]);
+    }
 }
