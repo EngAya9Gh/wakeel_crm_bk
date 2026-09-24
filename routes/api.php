@@ -22,6 +22,12 @@ Route::prefix('public/v1')->group(function () {
 // AUTHENTICATED API ROUTES (Sanctum Authentication Required)
 // =====================================================================
 Route::prefix('v1')->group(function () {
+    // Public Evaluation Routes
+    Route::prefix('public/evaluations')->group(function () {
+        Route::get('{token}', [\App\Http\Controllers\Api\Public\EvaluationPublicController::class, 'show']);
+        Route::post('{token}', [\App\Http\Controllers\Api\Public\EvaluationPublicController::class, 'submit']);
+    });
+
     // Auth Routes
     Route::post('auth/login', [AuthController::class, 'login']);
     Route::post('auth/forgot-password', [AuthController::class, 'forgotPassword']);
@@ -97,6 +103,47 @@ Route::prefix('v1')->group(function () {
 
         // Users Module
         Route::apiResource('users', \App\Http\Controllers\Api\V1\Users\UserController::class);
+
+        // Evaluations Module
+        Route::prefix('evaluations')->group(function () {
+            // Types
+            Route::prefix('types')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Api\V1\Evaluations\EvaluationTypeController::class, 'index']);
+                Route::post('/', [\App\Http\Controllers\Api\V1\Evaluations\EvaluationTypeController::class, 'store']);
+                Route::get('{evaluationType}', [\App\Http\Controllers\Api\V1\Evaluations\EvaluationTypeController::class, 'show']);
+                Route::put('{evaluationType}', [\App\Http\Controllers\Api\V1\Evaluations\EvaluationTypeController::class, 'update']);
+                Route::delete('{evaluationType}', [\App\Http\Controllers\Api\V1\Evaluations\EvaluationTypeController::class, 'destroy']);
+            });
+
+            Route::get('/', [\App\Http\Controllers\Api\V1\Evaluations\EvaluationController::class, 'index']);
+            Route::post('/', [\App\Http\Controllers\Api\V1\Evaluations\EvaluationController::class, 'store']);
+            Route::get('stats', [\App\Http\Controllers\Api\V1\Evaluations\EvaluationController::class, 'stats']);
+            Route::get('links', [\App\Http\Controllers\Api\V1\Evaluations\EvaluationLinkController::class, 'index']);
+            Route::post('links', [\App\Http\Controllers\Api\V1\Evaluations\EvaluationLinkController::class, 'create']);
+            Route::get('{evaluation}', [\App\Http\Controllers\Api\V1\Evaluations\EvaluationController::class, 'show']);
+            Route::delete('{evaluation}', [\App\Http\Controllers\Api\V1\Evaluations\EvaluationController::class, 'destroy']);
+        });
+
+        // Tickets Module
+        Route::prefix('tickets')->group(function () {
+            // Ticket Categories
+            Route::prefix('categories')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Api\V1\Tickets\TicketCategoryController::class, 'index']);
+                Route::post('/', [\App\Http\Controllers\Api\V1\Tickets\TicketCategoryController::class, 'store']);
+                Route::get('{ticketCategory}', [\App\Http\Controllers\Api\V1\Tickets\TicketCategoryController::class, 'show']);
+                Route::put('{ticketCategory}', [\App\Http\Controllers\Api\V1\Tickets\TicketCategoryController::class, 'update']);
+                Route::delete('{ticketCategory}', [\App\Http\Controllers\Api\V1\Tickets\TicketCategoryController::class, 'destroy']);
+            });
+
+            Route::get('/', [\App\Http\Controllers\Api\V1\Tickets\TicketController::class, 'index']);
+            Route::post('/', [\App\Http\Controllers\Api\V1\Tickets\TicketController::class, 'store']);
+            Route::get('{ticket}', [\App\Http\Controllers\Api\V1\Tickets\TicketController::class, 'show']);
+            Route::put('{ticket}', [\App\Http\Controllers\Api\V1\Tickets\TicketController::class, 'update']);
+            Route::delete('{ticket}', [\App\Http\Controllers\Api\V1\Tickets\TicketController::class, 'destroy']);
+            
+            // Messages
+            Route::post('{ticket}/messages', [\App\Http\Controllers\Api\V1\Tickets\TicketMessageController::class, 'store']);
+        });
         
         // Tenant/System AI Assistant
         Route::get('ai/history', [\App\Http\Controllers\Api\V1\Tenant\TenantAiController::class, 'history']);

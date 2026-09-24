@@ -37,6 +37,9 @@ class Client extends Model
     public function appointments() { return $this->hasMany(Appointment::class); }
     public function timeline() { return $this->hasMany(ClientTimeline::class); }
     public function procedures() { return $this->hasMany(ClientProcedure::class); }
+    public function tickets() { return $this->hasMany(Ticket::class); }
+    public function evaluations() { return $this->hasMany(Evaluation::class); }
+    public function evaluationLinks() { return $this->hasMany(EvaluationLink::class); }
     
     // Pivot
     public function tags() { return $this->belongsToMany(Tag::class, 'client_tag'); }
