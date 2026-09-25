@@ -8,8 +8,13 @@ Route::get('/', function () {
 
 // Temporary route to run seeder without terminal (for testing/demo)
 Route::get('/run-demo-seeder', function () {
-    \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'TicketAndEvaluationSeeder']);
-    return 'Seeder Executed Successfully!';
+    try {
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'TicketAndEvaluationSeeder']);
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        return "Exit Code: $exitCode <br> Output: $output <br> Seeder Executed Successfully!";
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
 });
 
 Route::get('/fix-storage', function () {
