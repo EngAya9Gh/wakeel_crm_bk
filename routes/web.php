@@ -9,12 +9,49 @@ Route::get('/', function () {
 // Temporary route to run seeder without terminal (for testing/demo)
 Route::get('/run-demo-seeder', function () {
     try {
-        $exitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'TicketAndEvaluationSeeder']);
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('db:seed', [
+            '--class' => 'TicketAndEvaluationSeeder',
+            '--force' => true
+        ]);
         $output = \Illuminate\Support\Facades\Artisan::output();
         return "Exit Code: $exitCode <br> Output: $output <br> Seeder Executed Successfully!";
     } catch (\Exception $e) {
         return "Error: " . $e->getMessage();
     }
+});
+
+Route::get('/rate/{token}', function ($token) {
+    $service = app(\App\Services\Evaluations\EvaluationService::class);
+    $link = $service->findValidLinkByToken($token);
+    
+    if (!$link) {
+        return abort(404, 'هذا الرابط غير صالح أو منتهي الصلاحية.');
+    }
+    
+    return view('evaluations.rate', compact('link', 'token'));
+});
+
+Route::post('/rate/{token}', function (\Illuminate\Http\Request $request, $token) {
+    $service = app(\App\Services\Evaluations\EvaluationService::class);
+    $link = $service->findValidLinkByToken($token);
+    
+    if (!$link) {
+        return abort(404, 'هذا الرابط غير صالح أو منتهي الصلاحية.');
+    }
+
+    $validated = $request->validate([
+        'rating' => 'required|integer|min:1|max:5',
+        'notes' => 'nullable|string'
+    ]);
+
+    $validated['metadata'] = [
+        'ip' => $request->ip(),
+        'user_agent' => $request->userAgent()
+    ];
+
+    $service->submitViaLink($link, $validated);
+
+    return back()->with('success', 'شكراً لك! تم إرسال تقييمك بنجاح.');
 });
 
 Route::get('/fix-storage', function () {
