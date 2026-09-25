@@ -66,11 +66,11 @@ class TicketAndEvaluationSeeder extends Seeder
         // manual (يدوي), whatsapp (واتساب), email (إيميل), phone (هاتف), chat_widget (موقع).
         
         $ticketsData = [
-            ['num' => 'TCK-1001', 'source' => 'whatsapp', 'title' => 'مشكلة في تسجيل الدخول (واتساب)', 'cat' => $technicalCat->id],
-            ['num' => 'TCK-1002', 'source' => 'manual', 'title' => 'استفسار عن باقات الأسعار (يدوي)', 'cat' => $salesCat->id],
-            ['num' => 'TCK-1003', 'source' => 'email', 'title' => 'طلب فاتورة ضريبية (إيميل)', 'cat' => $salesCat->id],
-            ['num' => 'TCK-1004', 'source' => 'phone', 'title' => 'شكوى تأخير الخدمة (هاتف)', 'cat' => TicketCategory::where('name', 'شكاوى واقتراحات')->first()->id],
-            ['num' => 'TCK-1005', 'source' => 'chat_widget', 'title' => 'سؤال من الموقع (شات)', 'cat' => $salesCat->id],
+            ['num' => '10001', 'source' => 'whatsapp', 'title' => 'عدم القدرة على تسجيل الدخول للنظام', 'cat' => $technicalCat->id],
+            ['num' => '10002', 'source' => 'manual', 'title' => 'استفسار بخصوص تجديد الباقة السنوية', 'cat' => $salesCat->id],
+            ['num' => '10003', 'source' => 'email', 'title' => 'طلب إصدار فاتورة ضريبية للربع الثالث', 'cat' => $salesCat->id],
+            ['num' => '10004', 'source' => 'phone', 'title' => 'تأخر في الرد على طلب الدعم الفني', 'cat' => TicketCategory::where('name', 'شكاوى واقتراحات')->first()->id],
+            ['num' => '10005', 'source' => 'chat_widget', 'title' => 'استفسار عن طريقة إضافة مستخدم جديد', 'cat' => $technicalCat->id],
         ];
 
         foreach ($ticketsData as $idx => $tData) {
@@ -81,7 +81,7 @@ class TicketAndEvaluationSeeder extends Seeder
                     'assigned_to' => $userId,
                     'category_id' => $tData['cat'],
                     'title' => $tData['title'],
-                    'description' => 'هذه التذكرة جاءت عبر المصدر: ' . $tData['source'],
+                    'description' => 'العميل يتواصل معنا بخصوص ' . $tData['title'] . '. يرجى المتابعة وتقديم الدعم اللازم بأسرع وقت لضمان رضا العميل.',
                     'status' => $idx % 2 == 0 ? 'resolved' : 'open',
                     'priority' => 'medium',
                     'source' => $tData['source'],

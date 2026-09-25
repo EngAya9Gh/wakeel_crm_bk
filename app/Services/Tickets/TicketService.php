@@ -58,11 +58,11 @@ class TicketService
         // Try to find the highest ticket number and increment it, or start from 10000
         $latestTicket = Ticket::orderBy('id', 'desc')->first();
         
-        if ($latestTicket && is_numeric(str_replace('#', '', $latestTicket->ticket_number))) {
-            $lastNumber = (int) str_replace('#', '', $latestTicket->ticket_number);
-            return '#' . ($lastNumber + 1);
+        if ($latestTicket && is_numeric($latestTicket->ticket_number)) {
+            $lastNumber = (int) $latestTicket->ticket_number;
+            return (string) ($lastNumber + 1);
         }
         
-        return '#10001';
+        return '10001';
     }
 }

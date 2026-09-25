@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
         // SAFE to run repeatedly — uses firstOrCreate, never duplicates.
         $this->call([
             SuperAdminSeeder::class,
+            TicketAndEvaluationSeeder::class,
         ]);
     }
 }

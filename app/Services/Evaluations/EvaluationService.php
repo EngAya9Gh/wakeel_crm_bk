@@ -88,7 +88,7 @@ class EvaluationService
         if (!empty($data['notes']) && $link->client_id) {
             \App\Models\Comment::create([
                 'client_id' => $link->client_id,
-                'user_id' => null, // Submitted by client
+                'user_id' => $link->assigned_user_id ?? $link->created_by ?? 1, // Fallback to assigned user or admin
                 'type_id' => 1, // Default comment type or we can create a special one
                 'subject' => 'تقييم خدمة - ' . $data['rating'] . ' نجوم',
                 'content' => $data['notes'],

@@ -32,11 +32,15 @@
 </head>
 <body class="antialiased min-h-screen flex flex-col justify-center items-center p-4">
 
-    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
         <!-- Header -->
-        <div class="bg-blue-600 p-6 text-center text-white">
+        <div class="bg-orange-500 p-8 text-center text-white relative">
+            <!-- Logo -->
+            <div class="mb-4 flex justify-center">
+                <img src="{{ asset('logo.png') }}" alt="Logo" class="h-16 w-auto object-contain bg-white rounded-lg p-1 shadow" onerror="this.style.display='none'">
+            </div>
             <h1 class="text-2xl font-bold mb-2">{{ $link->tenant->name ?? 'الشركة' }}</h1>
-            <p class="text-blue-100 opacity-90 text-sm">تهمنا آرائكم لنرتقي بخدمتكم</p>
+            <p class="text-orange-100 opacity-90 text-sm">رأيك يهمنا لنرتقي بخدمتكم</p>
         </div>
 
         <div class="p-8">
@@ -52,7 +56,7 @@
                 </div>
             @else
                 @if($link->note_for_client)
-                    <div class="bg-blue-50 border-r-4 border-blue-500 p-4 rounded-l text-sm text-blue-700 mb-6">
+                    <div class="bg-orange-50 border-r-4 border-orange-500 p-4 rounded-l text-sm text-orange-800 mb-6">
                         {{ $link->note_for_client }}
                     </div>
                 @endif
@@ -92,10 +96,10 @@
 
                     <div class="mb-6">
                         <label for="notes" class="block text-gray-700 text-sm font-medium mb-2">ملاحظات إضافية (اختياري)</label>
-                        <textarea id="notes" name="notes" rows="3" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none" placeholder="اكتب ملاحظاتك هنا..."></textarea>
+                        <textarea id="notes" name="notes" rows="3" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors resize-none" placeholder="اكتب ملاحظاتك هنا..."></textarea>
                     </div>
 
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-200 transition-all transform hover:-translate-y-0.5">
+                    <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-orange-200 transition-all transform hover:-translate-y-0.5">
                         إرسال التقييم
                     </button>
                 </form>
@@ -103,8 +107,8 @@
         </div>
         
         <!-- Footer -->
-        <div class="bg-gray-50 p-4 text-center">
-            <p class="text-xs text-gray-400">Powered by CRM Wakeel</p>
+        <div class="bg-gray-50 p-4 text-center border-t border-gray-100">
+            <p class="text-xs text-gray-400">Powered by Wakeel CRM</p>
         </div>
     </div>
 </body>
