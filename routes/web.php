@@ -6,6 +6,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Temporary route to run seeder without terminal (for testing/demo)
+Route::get('/run-demo-seeder', function () {
+    \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'TicketAndEvaluationSeeder']);
+    return 'Seeder Executed Successfully!';
+});
+
 Route::get('/fix-storage', function () {
     $target = storage_path('app/public');
     $link = public_path('storage');
