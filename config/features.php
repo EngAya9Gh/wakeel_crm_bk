@@ -71,6 +71,18 @@ return [
             'name_en' => 'AI Assistant',
             'is_core' => false,
         ],
+        'tickets' => [
+            'key' => 'tickets',
+            'name_ar' => 'الدعم الفني والتذاكر',
+            'name_en' => 'Support & Ticketing',
+            'is_core' => false,
+        ],
+        'evaluations' => [
+            'key' => 'evaluations',
+            'name_ar' => 'نظام التقييمات',
+            'name_en' => 'Evaluations System',
+            'is_core' => false,
+        ],
     ],
 
     /*

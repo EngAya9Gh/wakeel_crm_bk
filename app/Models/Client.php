@@ -31,6 +31,7 @@ class Client extends Model
     public function assignedTo() { return $this->belongsTo(User::class, 'assigned_to'); }
 
     // Relations Children
+    public function contacts() { return $this->hasMany(ClientContact::class); }
     public function comments() { return $this->hasMany(Comment::class); }
     public function files() { return $this->hasMany(ClientFile::class); }
     public function invoices() { return $this->hasMany(Invoice::class); }

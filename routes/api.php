@@ -282,6 +282,14 @@ Route::prefix('v1')->group(function () {
             Route::post('threads/{threadId}/media-upload', [\App\Http\Controllers\Api\V1\WhatsAppController::class, 'uploadMedia']);
             Route::get('media', [\App\Http\Controllers\Api\V1\WhatsAppController::class, 'downloadMedia']);
         });
+        // WhatsApp Provider Integrations
+        Route::prefix('integrations/provider')->group(function () {
+            Route::post('check-contact', [\App\Http\Controllers\Api\V1\Integrations\ProviderWebhookController::class, 'checkContact']);
+            Route::post('create-lead', [\App\Http\Controllers\Api\V1\Integrations\ProviderWebhookController::class, 'createLead']);
+        });
+
+        // Client Contacts (Merge)
+        Route::post('clients/{sourceClient}/merge-contact', [\App\Http\Controllers\Api\V1\Clients\ClientContactController::class, 'mergeContact']);
     });
 });
 
