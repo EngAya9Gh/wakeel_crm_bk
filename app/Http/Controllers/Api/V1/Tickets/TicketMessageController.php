@@ -14,6 +14,15 @@ class TicketMessageController extends Controller
 {
     public function __construct(private readonly TicketService $ticketService) {}
 
+    public function index(Ticket $ticket): JsonResponse
+    {
+        $messages = $ticket->messages()->with('user:id,name')->latest()->paginate(20);
+        return response()->json([
+            'success' => true,
+            'data' => $messages
+        ]);
+    }
+
     public function store(StoreTicketMessageRequest $request, Ticket $ticket): JsonResponse
     {
         $data = $request->validated();

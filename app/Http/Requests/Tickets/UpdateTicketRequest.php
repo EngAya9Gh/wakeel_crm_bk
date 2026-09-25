@@ -26,6 +26,10 @@ class UpdateTicketRequest extends FormRequest
             'status' => ['sometimes', 'string', 'in:open,in_progress,pending_client,resolved,closed'],
             'priority' => ['sometimes', 'string', 'in:low,medium,high,critical'],
             'source' => ['sometimes', 'string', 'in:manual,whatsapp,email,chat_widget,api,phone'],
+            'evaluation' => ['nullable', 'array'],
+            'evaluation.type_id' => ['required_with:evaluation', 'exists:evaluation_types,id'],
+            'evaluation.rating' => ['required_with:evaluation', 'integer', 'min:1', 'max:5'],
+            'evaluation.notes' => ['nullable', 'string', 'max:1000'],
         ];
     }
 }

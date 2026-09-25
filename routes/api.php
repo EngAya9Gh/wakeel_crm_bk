@@ -142,6 +142,7 @@ Route::prefix('v1')->group(function () {
             Route::delete('{ticket}', [\App\Http\Controllers\Api\V1\Tickets\TicketController::class, 'destroy']);
             
             // Messages
+            Route::get('{ticket}/messages', [\App\Http\Controllers\Api\V1\Tickets\TicketMessageController::class, 'index']);
             Route::post('{ticket}/messages', [\App\Http\Controllers\Api\V1\Tickets\TicketMessageController::class, 'store']);
         });
         

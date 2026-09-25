@@ -87,6 +87,8 @@ class TicketController extends Controller
     public function update(UpdateTicketRequest $request, Ticket $ticket): JsonResponse
     {
         $data = $request->validated();
+        $evaluationData = $data['evaluation'] ?? null;
+        unset($data['evaluation']);
         
         if (isset($data['status']) && $data['status'] === 'resolved' && $ticket->status !== 'resolved') {
             $data['resolved_at'] = now();
@@ -98,10 +100,28 @@ class TicketController extends Controller
 
         $ticket->update($data);
 
+        // Process Evaluation if provided
+        if ($evaluationData) {
+            $ticket->evaluations()->updateOrCreate(
+                [
+                    'tenant_id' => $ticket->tenant_id,
+                    'type_id' => $evaluationData['type_id'],
+                ],
+                [
+                    'client_id' => $ticket->client_id,
+                    'assigned_user_id' => $ticket->assigned_to ?? auth()->id(),
+                    'rating' => $evaluationData['rating'],
+                    'notes' => $evaluationData['notes'] ?? null,
+                    'channel' => 'manual',
+                    'metadata' => ['source' => 'ticket_closure']
+                ]
+            );
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'تم تحديث التذكرة بنجاح',
-            'data' => $ticket->fresh()
+            'data' => $ticket->fresh(['evaluations'])
         ]);
     }
 
