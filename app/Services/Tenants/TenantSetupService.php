@@ -65,7 +65,11 @@ class TenantSetupService
         // 6. Seed default sources
         $this->seedDefaultSources($tenant);
 
-        // 7. Create admin user if email is provided
+        // 7. Seed default Ticket Categories and Evaluation Types
+        $this->seedDefaultTicketCategories($tenant);
+        $this->seedDefaultEvaluationTypes($tenant);
+
+        // 8. Create admin user if email is provided
         $adminUser = null;
         if (!empty($adminEmail)) {
             $adminUser = User::withoutGlobalScope('tenant')->create([
@@ -146,6 +150,39 @@ class TenantSetupService
             Source::firstOrCreate(
                 ['name' => $sourceName, 'tenant_id' => $tenant->id],
                 ['name' => $sourceName, 'tenant_id' => $tenant->id, 'is_active' => true]
+            );
+        }
+    }
+
+    private function seedDefaultTicketCategories(Tenant $tenant): void
+    {
+        $categories = [
+            ['name' => 'دعم فني', 'color' => '#3498db', 'sla_hours' => 24, 'is_active' => true],
+            ['name' => 'مبيعات', 'color' => '#2ecc71', 'sla_hours' => 12, 'is_active' => true],
+            ['name' => 'شكاوى واقتراحات', 'color' => '#e74c3c', 'sla_hours' => 48, 'is_active' => true],
+            ['name' => 'شؤون إدارية', 'color' => '#9b59b6', 'sla_hours' => 72, 'is_active' => true],
+        ];
+
+        foreach ($categories as $cat) {
+            \App\Models\TicketCategory::firstOrCreate(
+                ['tenant_id' => $tenant->id, 'name' => $cat['name']],
+                $cat
+            );
+        }
+    }
+
+    private function seedDefaultEvaluationTypes(Tenant $tenant): void
+    {
+        $evalTypes = [
+            ['name' => 'تقييم جودة الخدمة', 'is_active' => true],
+            ['name' => 'تقييم سرعة الرد', 'is_active' => true],
+            ['name' => 'تقييم أداء الموظف', 'is_active' => true],
+        ];
+
+        foreach ($evalTypes as $type) {
+            \App\Models\EvaluationType::firstOrCreate(
+                ['tenant_id' => $tenant->id, 'name' => $type['name']],
+                $type
             );
         }
     }

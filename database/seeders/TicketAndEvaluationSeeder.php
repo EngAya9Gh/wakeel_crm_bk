@@ -17,7 +17,7 @@ class TicketAndEvaluationSeeder extends Seeder
     public function run(): void
     {
         $tenantId = 1; // Assuming default tenant for local demo
-        $clientId = 33; // Target client ID as requested
+        $clientId = 53; // Target client ID as requested
         $userId = 1; // Admin user
 
         // 1. Seed Categories (Constants/Dynamics)
@@ -36,6 +36,7 @@ class TicketAndEvaluationSeeder extends Seeder
         }
 
         $technicalCat = TicketCategory::where('name', 'دعم فني')->first();
+        $salesCat = TicketCategory::where('name', 'مبيعات')->first();
         
         // Add a sub-category
         TicketCategory::updateOrCreate(
@@ -59,83 +60,56 @@ class TicketAndEvaluationSeeder extends Seeder
 
         $qualityType = EvaluationType::where('name', 'تقييم جودة الخدمة')->first();
         $speedType = EvaluationType::where('name', 'تقييم سرعة الرد')->first();
+        $performanceType = EvaluationType::where('name', 'تقييم أداء الموظف')->first();
 
-        // 3. Seed Tickets for Client 33
-        $ticket1 = Ticket::updateOrCreate(
-            ['tenant_id' => $tenantId, 'client_id' => $clientId, 'ticket_number' => 'TCK-1001'],
-            [
-                'user_id' => $userId,
-                'assigned_to' => $userId,
-                'category_id' => $technicalCat->id,
-                'title' => 'مشكلة في تسجيل الدخول للمنصة',
-                'description' => 'العميل يواجه مشكلة ولا يستطيع الدخول لحسابه منذ يومين.',
-                'status' => 'resolved',
-                'priority' => 'high',
-                'source' => 'whatsapp',
-                'sla_due_at' => now()->addHours(24),
-                'resolved_at' => now()->subHours(2),
-            ]
-        );
-
-        // Add Messages to Ticket 1
-        TicketMessage::firstOrCreate(
-            ['ticket_id' => $ticket1->id, 'content' => 'الرجاء تزويدي برقم الهوية للتحقق'],
-            [
-                'user_id' => $userId, 
-                'sender_name' => 'محمد الإداري',
-                'is_internal' => false
-            ]
-        );
-
-        TicketMessage::firstOrCreate(
-            ['ticket_id' => $ticket1->id, 'content' => 'تم الحل وتحديث كلمة المرور'],
-            [
-                'user_id' => $userId, 
-                'sender_name' => 'محمد الإداري',
-                'is_internal' => true // Internal note
-            ]
-        );
-
-        $ticket2 = Ticket::updateOrCreate(
-            ['tenant_id' => $tenantId, 'client_id' => $clientId, 'ticket_number' => 'TCK-1002'],
-            [
-                'user_id' => $userId,
-                'assigned_to' => $userId,
-                'category_id' => TicketCategory::where('name', 'مبيعات')->first()->id,
-                'title' => 'استفسار عن باقات الأسعار',
-                'description' => 'العميل يسأل عن أسعار الباقة السنوية.',
-                'status' => 'open',
-                'priority' => 'medium',
-                'source' => 'manual',
-                'sla_due_at' => now()->addHours(12),
-            ]
-        );
-
-        // 4. Seed Evaluations for Client 33
+        // 3. Seed Tickets for Client 33 (All Sources)
+        // manual (يدوي), whatsapp (واتساب), email (إيميل), phone (هاتف), chat_widget (موقع).
         
-        // Evaluation tied to Ticket 1
-        Evaluation::updateOrCreate(
-            ['tenant_id' => $tenantId, 'client_id' => $clientId, 'ticket_id' => $ticket1->id],
-            [
-                'user_id' => $userId,
-                'assigned_user_id' => $userId,
-                'type_id' => $qualityType->id,
-                'rating' => 5,
-                'notes' => 'الموظف كان سريعاً جداً في حل المشكلة التقنية',
-                'channel' => 'manual'
-            ]
-        );
+        $ticketsData = [
+            ['num' => 'TCK-1001', 'source' => 'whatsapp', 'title' => 'مشكلة في تسجيل الدخول (واتساب)', 'cat' => $technicalCat->id],
+            ['num' => 'TCK-1002', 'source' => 'manual', 'title' => 'استفسار عن باقات الأسعار (يدوي)', 'cat' => $salesCat->id],
+            ['num' => 'TCK-1003', 'source' => 'email', 'title' => 'طلب فاتورة ضريبية (إيميل)', 'cat' => $salesCat->id],
+            ['num' => 'TCK-1004', 'source' => 'phone', 'title' => 'شكوى تأخير الخدمة (هاتف)', 'cat' => TicketCategory::where('name', 'شكاوى واقتراحات')->first()->id],
+            ['num' => 'TCK-1005', 'source' => 'chat_widget', 'title' => 'سؤال من الموقع (شات)', 'cat' => $salesCat->id],
+        ];
 
-        // General Evaluation (Not tied to a ticket)
-        Evaluation::updateOrCreate(
-            ['tenant_id' => $tenantId, 'client_id' => $clientId, 'type_id' => $speedType->id, 'ticket_id' => null],
-            [
-                'user_id' => $userId,
-                'assigned_user_id' => $userId,
-                'rating' => 4,
-                'notes' => 'تم الرد على استفساري على الواتساب بشكل سريع ومفيد',
-                'channel' => 'whatsapp'
-            ]
-        );
+        foreach ($ticketsData as $idx => $tData) {
+            Ticket::updateOrCreate(
+                ['tenant_id' => $tenantId, 'client_id' => $clientId, 'ticket_number' => $tData['num']],
+                [
+                    'user_id' => $userId,
+                    'assigned_to' => $userId,
+                    'category_id' => $tData['cat'],
+                    'title' => $tData['title'],
+                    'description' => 'هذه التذكرة جاءت عبر المصدر: ' . $tData['source'],
+                    'status' => $idx % 2 == 0 ? 'resolved' : 'open',
+                    'priority' => 'medium',
+                    'source' => $tData['source'],
+                    'sla_due_at' => now()->addHours(24),
+                    'resolved_at' => $idx % 2 == 0 ? now()->subHours(1) : null,
+                ]
+            );
+        }
+
+        // 4. Seed Evaluations for Client 33 (All Channels)
+        // manual (إدخال يدوي), whatsapp (عبر رابط واتساب), sms (عبر رسالة قصيرة).
+        
+        $evaluationsData = [
+            ['type' => $qualityType->id, 'channel' => 'manual', 'rating' => 5, 'note' => 'تم التقييم يدوياً من قبل الموظف عبر الهاتف'],
+            ['type' => $speedType->id, 'channel' => 'whatsapp', 'rating' => 4, 'note' => 'تقييم العميل عبر رابط الواتساب'],
+            ['type' => $performanceType->id, 'channel' => 'sms', 'rating' => 3, 'note' => 'تقييم العميل عبر رابط الـ SMS'],
+        ];
+
+        foreach ($evaluationsData as $eData) {
+            Evaluation::updateOrCreate(
+                ['tenant_id' => $tenantId, 'client_id' => $clientId, 'type_id' => $eData['type'], 'channel' => $eData['channel']],
+                [
+                    'user_id' => $userId,
+                    'assigned_user_id' => $userId,
+                    'rating' => $eData['rating'],
+                    'notes' => $eData['note'],
+                ]
+            );
+        }
     }
 }
