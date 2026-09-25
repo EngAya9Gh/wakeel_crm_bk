@@ -288,7 +288,8 @@ Route::prefix('v1')->group(function () {
             Route::post('create-lead', [\App\Http\Controllers\Api\V1\Integrations\ProviderWebhookController::class, 'createLead']);
         });
 
-        // Client Contacts (Merge)
+        // Client Contacts
+        Route::apiResource('clients.contacts', \App\Http\Controllers\Api\V1\Clients\ClientContactController::class);
         Route::post('clients/{sourceClient}/merge-contact', [\App\Http\Controllers\Api\V1\Clients\ClientContactController::class, 'mergeContact']);
     });
 });

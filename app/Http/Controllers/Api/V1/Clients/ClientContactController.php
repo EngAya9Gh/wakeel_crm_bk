@@ -13,6 +13,55 @@ use Illuminate\Support\Facades\DB;
 
 class ClientContactController extends Controller
 {
+    public function index(Client $client): JsonResponse
+    {
+        return response()->json($client->contacts);
+    }
+
+    public function store(Request $request, Client $client): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:50',
+            'email' => 'nullable|email|max:255',
+            'position' => 'nullable|string|max:255',
+            'is_primary' => 'boolean',
+        ]);
+
+        if ($validated['is_primary'] ?? false) {
+            $client->contacts()->update(['is_primary' => false]);
+        }
+
+        $contact = $client->contacts()->create($validated);
+
+        return response()->json(['message' => 'تم إضافة جهة الاتصال بنجاح', 'contact' => $contact], 201);
+    }
+
+    public function update(Request $request, Client $client, ClientContact $contact): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'phone' => 'sometimes|required|string|max:50',
+            'email' => 'nullable|email|max:255',
+            'position' => 'nullable|string|max:255',
+            'is_primary' => 'boolean',
+        ]);
+
+        if ($validated['is_primary'] ?? false) {
+            $client->contacts()->where('id', '!=', $contact->id)->update(['is_primary' => false]);
+        }
+
+        $contact->update($validated);
+
+        return response()->json(['message' => 'تم تحديث جهة الاتصال بنجاح', 'contact' => $contact]);
+    }
+
+    public function destroy(Client $client, ClientContact $contact): JsonResponse
+    {
+        $contact->delete();
+        return response()->json(['message' => 'تم حذف جهة الاتصال بنجاح']);
+    }
+
     /**
      * Merge a contact from one client to another
      * Example: A new lead was created by WhatsApp webhook. The agent wants to merge 
