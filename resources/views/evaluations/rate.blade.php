@@ -37,14 +37,14 @@
         <div class="bg-orange-500 p-8 text-center text-white relative">
             <!-- Logo -->
             <div class="mb-4 flex justify-center">
-                <img src="{{ asset('logo_light.png') }}" alt="Logo" class="h-16 w-auto object-contain bg-white rounded-lg p-1 shadow" onerror="this.style.display='none'">
+                <img src="{{ asset('logo_dark.png') }}" alt="Logo" class="h-16 w-auto object-contain" onerror="this.style.display='none'">
             </div>
             <h1 class="text-2xl font-bold mb-2">{{ $link->tenant->name ?? 'الشركة' }}</h1>
             <p class="text-orange-100 opacity-90 text-sm">رأيك يهمنا لنرتقي بخدمتكم</p>
         </div>
 
         <div class="p-8">
-            @if(session('success'))
+            @if(session('success') || isset($already_used))
                 <div class="text-center py-8">
                     <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-500 mb-6">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,7 +52,7 @@
                         </svg>
                     </div>
                     <h2 class="text-2xl font-bold text-gray-800 mb-2">شكراً لك!</h2>
-                    <p class="text-gray-600">{{ session('success') }}</p>
+                    <p class="text-gray-600">{{ session('success') ?? 'لقد قمت بتقييم هذه الخدمة مسبقاً.' }}</p>
                 </div>
             @else
                 @if($link->note_for_client)

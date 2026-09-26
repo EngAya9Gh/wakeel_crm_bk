@@ -22,7 +22,8 @@ class TicketController extends Controller
             'client:id,name,phone', 
             'creator:id,name', 
             'assignedTo:id,name', 
-            'category:id,name,color'
+            'category:id,name,color',
+            'evaluations:id,ticket_id,rating,type_id,notes'
         ])->latest();
 
         if ($request->has('status')) {
@@ -39,6 +40,12 @@ class TicketController extends Controller
         
         if ($request->has('category_id')) {
             $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->has('rating')) {
+            $query->whereHas('evaluations', function($q) use ($request) {
+                $q->where('rating', $request->rating);
+            });
         }
 
         $tickets = $query->paginate($request->integer('per_page', 15));

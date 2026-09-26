@@ -71,7 +71,7 @@ class EvaluationController extends Controller
             $query->where('assigned_user_id', $request->assigned_user_id);
         }
 
-        $average = $query->avg('rating') ?? 0;
+        $average = (float) ($query->avg('rating') ?? 0);
         $total = $query->count();
         $distribution = $query->selectRaw('rating, count(*) as count')
             ->groupBy('rating')

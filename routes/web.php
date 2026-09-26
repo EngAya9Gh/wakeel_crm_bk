@@ -10,10 +10,17 @@ Route::get('/', function () {
 
 Route::get('/rate/{token}', function ($token) {
     $service = app(\App\Services\Evaluations\EvaluationService::class);
-    $link = $service->findValidLinkByToken($token);
+    
+    // First, try to find the link regardless of its used_at status
+    $link = \App\Models\EvaluationLink::where('token', $token)->first();
     
     if (!$link) {
-        return abort(404, 'هذا الرابط غير صالح أو منتهي الصلاحية.');
+        return abort(404, 'هذا الرابط غير صالح.');
+    }
+    
+    // If it's already used, show a nice message instead of the rating form
+    if ($link->used_at) {
+        return view('evaluations.rate', ['link' => $link, 'token' => $token, 'already_used' => true]);
     }
     
     return view('evaluations.rate', compact('link', 'token'));
