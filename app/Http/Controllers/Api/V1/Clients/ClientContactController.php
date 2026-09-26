@@ -84,13 +84,17 @@ class ClientContactController extends Controller
             // 1. Move contact to target client
             $contact->update(['client_id' => $targetClient->id]);
 
-            // 2. Move any tickets belonging to the source client to target client
+            // 2. Move all related entities from source client to target client
             $sourceClient->tickets()->update(['client_id' => $targetClient->id]);
-
-            // 3. Move any evaluations
             $sourceClient->evaluations()->update(['client_id' => $targetClient->id]);
+            $sourceClient->comments()->update(['client_id' => $targetClient->id]);
+            $sourceClient->invoices()->update(['client_id' => $targetClient->id]);
+            $sourceClient->appointments()->update(['client_id' => $targetClient->id]);
+            $sourceClient->procedures()->update(['client_id' => $targetClient->id]);
+            $sourceClient->files()->update(['client_id' => $targetClient->id]);
+            $sourceClient->timeline()->update(['client_id' => $targetClient->id]);
 
-            // 4. (Optional) Delete source client if it has no more contacts
+            // 3. Delete source client if it has no more contacts
             if ($sourceClient->contacts()->count() === 0) {
                 $sourceClient->delete();
             }
