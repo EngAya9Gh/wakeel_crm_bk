@@ -24,7 +24,14 @@ class TicketController extends Controller
             'assignedTo:id,name', 
             'category:id,name,color',
             'evaluations:id,ticket_id,rating,type_id,notes'
-        ])->latest();
+        ])
+        ->addSelect([
+            'last_message' => \App\Models\TicketMessage::select('content')
+                ->whereColumn('ticket_id', 'tickets.id')
+                ->latest('id')
+                ->take(1)
+        ])
+        ->latest();
 
         if ($request->has('status')) {
             $query->where('status', $request->status);
