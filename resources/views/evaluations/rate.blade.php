@@ -32,13 +32,14 @@
 </head>
 <body class="antialiased min-h-screen flex flex-col justify-center items-center p-4">
 
+    <!-- Logo -->
+    <div class="mb-8 flex justify-center w-full">
+        <img src="{{ asset('logo_dark.png') }}" alt="Logo" class="h-20 w-auto object-contain" onerror="this.style.display='none'">
+    </div>
+
     <div class="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
         <!-- Header -->
         <div class="bg-orange-500 p-8 text-center text-white relative">
-            <!-- Logo -->
-            <div class="mb-4 flex justify-center">
-                <img src="{{ asset('logo_light.png') }}" alt="Logo" class="h-16 w-auto object-contain" onerror="this.style.display='none'">
-            </div>
             <h1 class="text-2xl font-bold mb-2">{{ $link->tenant->name ?? 'الشركة' }}</h1>
             <p class="text-orange-100 opacity-90 text-sm">رأيك يهمنا لنرتقي بخدمتكم</p>
         </div>
