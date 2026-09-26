@@ -65,6 +65,8 @@ class DashboardController extends Controller
             'clients' => $clientsStats,
             'invoices' => $invoicesStats,
             'appointments' => $appointmentsStats,
+            'total_tickets' => \App\Models\Ticket::count(),
+            'total_evaluations' => \App\Models\Evaluation::count(),
         ]);
     }
 
