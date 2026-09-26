@@ -37,7 +37,7 @@
         <div class="bg-orange-500 p-8 text-center text-white relative">
             <!-- Logo -->
             <div class="mb-4 flex justify-center">
-                <img src="{{ asset('logo_dark.png') }}" alt="Logo" class="h-16 w-auto object-contain bg-white rounded-lg p-1 shadow" onerror="this.style.display='none'">
+                <img src="{{ asset('logo_light.png') }}" alt="Logo" class="h-16 w-auto object-contain bg-white rounded-lg p-1 shadow" onerror="this.style.display='none'">
             </div>
             <h1 class="text-2xl font-bold mb-2">{{ $link->tenant->name ?? 'الشركة' }}</h1>
             <p class="text-orange-100 opacity-90 text-sm">رأيك يهمنا لنرتقي بخدمتكم</p>
