@@ -55,6 +55,26 @@ class TicketController extends Controller
             });
         }
 
+        if ($request->has('sub_category_id')) {
+            $query->where('sub_category_id', $request->sub_category_id);
+        }
+
+        if ($request->has('source')) {
+            $query->where('source', $request->source);
+        }
+
+        if ($request->has('priority')) {
+            $query->where('priority', $request->priority);
+        }
+
+        if ($request->has('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->has('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
         $tickets = $query->paginate($request->integer('per_page', 15));
 
         return response()->json([

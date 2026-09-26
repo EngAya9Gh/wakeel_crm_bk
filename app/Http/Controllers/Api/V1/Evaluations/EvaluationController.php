@@ -36,6 +36,18 @@ class EvaluationController extends Controller
             $query->where('type_id', $request->type_id);
         }
 
+        if ($request->has('ticket_id')) {
+            $query->where('ticket_id', $request->ticket_id);
+        }
+
+        if ($request->has('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->has('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
         $evaluations = $query->paginate($request->integer('per_page', 15));
 
         return response()->json([
