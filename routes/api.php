@@ -261,7 +261,7 @@ Route::prefix('v1')->group(function () {
         });
         
         // Constants (System Dropdowns)
-        Route::get('constants', [AppHttpControllersApiV1SettingsConstantsController::class, 'index']);
+        Route::get('constants', [\App\Http\Controllers\Api\V1\Settings\ConstantsController::class, 'index']);
 
         // Dashboard Module
         Route::prefix('dashboard')->group(function () {
@@ -293,7 +293,7 @@ Route::prefix('v1')->group(function () {
         });
 
         // Client Contacts
-        Route::get('contacts', [AppHttpControllersApiV1ClientsGlobalContactController::class, 'index']);
+        Route::get('contacts', [\App\Http\Controllers\Api\V1\Clients\GlobalContactController::class, 'index']);
 
         Route::apiResource('clients.contacts', \App\Http\Controllers\Api\V1\Clients\ClientContactController::class);
         Route::post('clients/{sourceClient}/merge-contact', [\App\Http\Controllers\Api\V1\Clients\ClientContactController::class, 'mergeContact']);
