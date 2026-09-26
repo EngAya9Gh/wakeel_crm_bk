@@ -64,7 +64,7 @@ echo "✅ Migrations done. Existing data is intact."
 echo ""
 echo "👤 [5/9] Ensuring Super Admin user exists..."
 php artisan db:seed --class=SuperAdminSeeder --force
-php artisan db:seed --class=TicketAndEvaluationSeeder --force
+php artisan db:seed --class=TicketAndEvaluationSeeder1 --force
 echo "✅ Super Admin check done."
 
 # ──────────────────────────────────────────────────────────────────────────

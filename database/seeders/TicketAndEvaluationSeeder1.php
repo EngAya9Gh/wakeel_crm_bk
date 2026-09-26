@@ -9,7 +9,7 @@ use App\Models\Ticket;
 use App\Models\TicketMessage;
 use App\Models\Evaluation;
 
-class TicketAndEvaluationSeeder extends Seeder
+class TicketAndEvaluationSeeder1 extends Seeder
 {
     /**
      * Run the database seeds.
@@ -66,7 +66,7 @@ class TicketAndEvaluationSeeder extends Seeder
         // manual (يدوي), whatsapp (واتساب), email (إيميل), phone (هاتف), chat_widget (موقع).
         
         $ticketsData = [
-            ['num' => '10001', 'source' => 'whatsapp', 'title' => 'عدم القدرة على تسجيل الدخول للنظام', 'cat' => $technicalCat->id],
+            ['num' => '10006', 'source' => 'whatsapp', 'title' => 'عدم القدرة على تسجيل الدخول للنظام', 'cat' => $technicalCat->id],
             ['num' => '10002', 'source' => 'manual', 'title' => 'استفسار بخصوص تجديد الباقة السنوية', 'cat' => $salesCat->id],
             ['num' => '10003', 'source' => 'email', 'title' => 'طلب إصدار فاتورة ضريبية للربع الثالث', 'cat' => $salesCat->id],
             ['num' => '10004', 'source' => 'phone', 'title' => 'تأخر في الرد على طلب الدعم الفني', 'cat' => TicketCategory::where('name', 'شكاوى واقتراحات')->first()->id],
