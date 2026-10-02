@@ -14,81 +14,75 @@ use Illuminate\Support\Facades\DB;
 class ProviderWebhookController extends Controller
 {
     /**
-     * Provider calls this to check if a phone number exists in CRM
-     * Body: { "phone": "099999999" }
+     * Provider calls this to sync a contact.
+     * If exists, returns client_id. If not, creates a new lead and returns client_id.
+     * Body: { "phone": "099999999", "name": "WhatsApp Lead" }
      */
-    public function checkContact(Request $request): JsonResponse
+    public function syncContact(Request $request): JsonResponse
     {
-        $request->validate(['phone' => 'required|string']);
+        $request->validate([
+            'phone' => 'required|string',
+            'name' => 'sometimes|string'
+        ]);
+
         $phone = $request->input('phone');
+        $name = $request->input('name', 'عميل واتساب محتمل');
 
         // Check in ClientContacts
         $contact = ClientContact::where('phone', $phone)->first();
-
         if ($contact) {
             return response()->json([
-                'exists' => true,
+                'is_new' => false,
                 'client_id' => $contact->client_id,
                 'contact_id' => $contact->id,
                 'name' => $contact->name,
             ]);
         }
 
-        // Check in Clients (if phone is still directly on client)
+        // Check in Clients
         $client = Client::where('phone', $phone)->first();
         if ($client) {
             return response()->json([
-                'exists' => true,
+                'is_new' => false,
                 'client_id' => $client->id,
                 'contact_id' => null,
                 'name' => $client->name,
             ]);
         }
 
-        return response()->json([
-            'exists' => false
-        ]);
-    }
-
-    /**
-     * Provider calls this to create a NEW lead/client if checkContact returns false
-     * Body: { "phone": "099999999", "name": "WhatsApp Lead" }
-     */
-    public function createLead(Request $request): JsonResponse
-    {
-        $request->validate([
-            'phone' => 'required|string',
-            'name' => 'required|string'
-        ]);
-
+        // Not found -> Create New Lead
         $tenantId = 1; // Or from provider's token
 
         DB::beginTransaction();
         try {
-            // Create a dummy client
+            // Fetch default source and status
+            $source = \App\Models\Source::where('name', 'واتساب')->first();
+            $status = \App\Models\ClientStatus::where('is_default', true)->first();
+
             $client = Client::create([
                 'tenant_id' => $tenantId,
-                'name' => $request->name,
-                'phone' => $request->phone,
-                'status_id' => 1, // Default status 'New'
-                'source_id' => 1, // Optional: 'WhatsApp'
+                'name' => $name,
+                'phone' => $phone,
+                'status_id' => $status ? $status->id : 1,
+                'source_id' => $source ? $source->id : null,
+                'priority' => 'medium',
             ]);
 
-            // Create contact for it
             $contact = ClientContact::create([
                 'tenant_id' => $tenantId,
                 'client_id' => $client->id,
-                'name' => $request->name,
-                'phone' => $request->phone,
+                'name' => $name,
+                'phone' => $phone,
                 'is_primary' => true,
             ]);
 
             DB::commit();
 
             return response()->json([
-                'success' => true,
+                'is_new' => true,
                 'client_id' => $client->id,
                 'contact_id' => $contact->id,
+                'name' => $name,
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();

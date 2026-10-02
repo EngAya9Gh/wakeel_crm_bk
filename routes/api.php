@@ -286,10 +286,8 @@ Route::prefix('v1')->group(function () {
             Route::post('threads/{threadId}/media-upload', [\App\Http\Controllers\Api\V1\WhatsAppController::class, 'uploadMedia']);
             Route::get('media', [\App\Http\Controllers\Api\V1\WhatsAppController::class, 'downloadMedia']);
         });
-        // WhatsApp Provider Integrations
         Route::prefix('integrations/provider')->group(function () {
-            Route::post('check-contact', [\App\Http\Controllers\Api\V1\Integrations\ProviderWebhookController::class, 'checkContact']);
-            Route::post('create-lead', [\App\Http\Controllers\Api\V1\Integrations\ProviderWebhookController::class, 'createLead']);
+            Route::post('sync-contact', [\App\Http\Controllers\Api\V1\Integrations\ProviderWebhookController::class, 'syncContact']);
         });
 
         // Client Contacts

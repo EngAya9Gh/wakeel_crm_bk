@@ -272,6 +272,43 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
               </button>
             </div>
           </div>
+
+          <div style={{ gridColumn: '1 / -1', height: 1, background: 'var(--border)', margin: '10px 0' }} />
+
+          {/* Sync Contact Settings for Provider */}
+          <div style={{ gridColumn: '1 / -1' }}>
+            <label style={{ fontSize: 12, color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, fontWeight: 700 }}>
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-8v4h8v-4zm0 0V8h-8v8h8zm0-8V4h2v4h-2z"/></svg>
+              بيانات المزامنة وإنشاء العملاء (تُعطى لمطور المزود)
+            </label>
+          </div>
+
+          <div style={{ gridColumn: '1 / -1' }}>
+            <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span>رابط المزامنة (Sync Contact URL)</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>رابط API لمعرفة هوية العميل أو إنشائه تلقائياً</span>
+            </label>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <input 
+                className="input-dark" 
+                type="text" 
+                readOnly 
+                value={`https://app.wakeel.cc/api/v1/integrations/provider/sync-contact`} 
+                style={{ direction: 'ltr', fontFamily: 'monospace', flex: 1, background: 'var(--surface-1)', color: 'var(--text-muted)' }} 
+              />
+              <button 
+                type="button"
+                className="btn-secondary" 
+                onClick={() => {
+                  navigator.clipboard.writeText(`https://app.wakeel.cc/api/v1/integrations/provider/sync-contact`);
+                  alert('تم نسخ الرابط بنجاح!');
+                }}
+                style={{ padding: '0 16px', whiteSpace: 'nowrap' }}
+              >
+                نسخ الرابط
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
