@@ -85,6 +85,68 @@ class WhatsAppWebhookController extends Controller
             }
         }
         
+        if ($event === 'ticket.sync') {
+            try {
+                $phone = $data['phone'] ?? null;
+                $categoryName = $data['category_name'] ?? 'دعم فني';
+                $providerThreadId = $data['thread_id'] ?? null;
+                $status = $data['status'] ?? 'open'; // open, resolved, closed
+
+                if ($phone && $providerThreadId) {
+                    $phone = preg_replace('/[^0-9]/', '', $phone);
+                    
+                    // 1. Find or Create Client
+                    $client = \App\Models\Client::where('tenant_id', $tenant->id)->where('phone', $phone)->first();
+                    if (!$client) {
+                        $source = \App\Models\Source::where('name', 'واتساب')->first();
+                        $client = \App\Models\Client::create([
+                            'tenant_id' => $tenant->id,
+                            'name' => $data['name'] ?? 'WhatsApp Lead',
+                            'phone' => $phone,
+                            'source_id' => $source ? $source->id : null,
+                        ]);
+                    }
+
+                    // 2. Find or Create Category (The Magic Link!)
+                    $category = \App\Models\TicketCategory::firstOrCreate(
+                        ['tenant_id' => $tenant->id, 'name' => $categoryName],
+                        ['color' => '#6B7280', 'is_active' => true] // لون رمادي افتراضي
+                    );
+
+                    // 3. Find or Create Ticket by provider_thread_id
+                    $ticket = \App\Models\Ticket::where('tenant_id', $tenant->id)
+                        ->whereJsonContains('metadata->provider_thread_id', $providerThreadId)
+                        ->first();
+
+                    if ($ticket) {
+                        // Update existing ticket
+                        $updateData = ['status' => $status, 'category_id' => $category->id];
+                        if ($status === 'resolved' && $ticket->status !== 'resolved') $updateData['resolved_at'] = now();
+                        if ($status === 'closed' && $ticket->status !== 'closed') $updateData['closed_at'] = now();
+                        $ticket->update($updateData);
+                    } else {
+                        // Create new ticket
+                        $lastTicket = \App\Models\Ticket::where('tenant_id', $tenant->id)->latest('id')->first();
+                        $ticketNumber = 'TKT-' . str_pad((string)(($lastTicket ? $lastTicket->id : 0) + 1), 6, '0', STR_PAD_LEFT);
+
+                        \App\Models\Ticket::create([
+                            'tenant_id' => $tenant->id,
+                            'ticket_number' => $ticketNumber,
+                            'client_id' => $client->id,
+                            'category_id' => $category->id,
+                            'title' => 'محادثة واتساب - ' . $client->name,
+                            'status' => $status,
+                            'source' => 'whatsapp',
+                            'metadata' => ['provider_thread_id' => $providerThreadId]
+                        ]);
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::error('WhatsApp Webhook ticket.sync error: ' . $e->getMessage());
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            }
+        }
+        
         // Depending on event type (e.g., 'message.incoming' or 'message.status') 
         // we can dispatch jobs or process it directly.
         // TODO: Add further event processing logic here when needed.
