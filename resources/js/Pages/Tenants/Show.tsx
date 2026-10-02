@@ -308,6 +308,10 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
                 نسخ الرابط
               </button>
             </div>
+            <div style={{ marginTop: 8, fontSize: 11, color: 'var(--warning-text, #eab308)', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              ملاحظة هامة: هذا الرابط محمي، يرجى توليد مفتاح للمزود من تبويب (API Keys) ليتم إرساله كـ Bearer Token.
+            </div>
           </div>
         </div>
       </div>

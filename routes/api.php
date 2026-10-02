@@ -144,6 +144,10 @@ Route::prefix('v1')->group(function () {
             // Messages
             Route::get('{ticket}/messages', [\App\Http\Controllers\Api\V1\Tickets\TicketMessageController::class, 'index']);
             Route::post('{ticket}/messages', [\App\Http\Controllers\Api\V1\Tickets\TicketMessageController::class, 'store']);
+            
+            // Dynamic Provider Messages (Live Fetch & Send)
+            Route::get('{ticket}/provider-messages', [\App\Http\Controllers\Api\V1\Tickets\TicketMessageController::class, 'providerMessages']);
+            Route::post('{ticket}/provider-messages', [\App\Http\Controllers\Api\V1\Tickets\TicketMessageController::class, 'sendProviderMessage']);
         });
         
         // Tenant/System AI Assistant
