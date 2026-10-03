@@ -111,10 +111,12 @@ class TicketController extends Controller
             'category:id,name,color',
             'messages.user:id,name'
         ]);
-        
+        $ticketArray = $ticket->toArray();
+        $ticketArray['has_whatsapp_chat'] = ($ticket->source === 'whatsapp' || !empty($ticket->metadata['provider_thread_id']));
+
         return response()->json([
             'success' => true,
-            'data' => $ticket
+            'data' => $ticketArray
         ]);
     }
 

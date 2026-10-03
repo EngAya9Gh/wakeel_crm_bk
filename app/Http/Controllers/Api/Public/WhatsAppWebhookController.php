@@ -118,11 +118,25 @@ class WhatsAppWebhookController extends Controller
                         ->whereJsonContains('metadata->provider_thread_id', $providerThreadId)
                         ->first();
 
+                    // Extract optional fields
+                    $subject = $data['subject'] ?? null;
+                    $description = $data['description'] ?? null;
+                    $summary = $data['summary'] ?? null;
+
                     if ($ticket) {
                         // Update existing ticket
                         $updateData = ['status' => $status, 'category_id' => $category->id];
                         if ($status === 'resolved' && $ticket->status !== 'resolved') $updateData['resolved_at'] = now();
                         if ($status === 'closed' && $ticket->status !== 'closed') $updateData['closed_at'] = now();
+                        
+                        if ($subject) $updateData['title'] = $subject;
+                        if ($description) $updateData['description'] = $description;
+                        
+                        // Update metadata safely
+                        $metadata = is_array($ticket->metadata) ? $ticket->metadata : json_decode($ticket->metadata, true) ?? [];
+                        if ($summary) $metadata['ai_summary'] = $summary;
+                        $updateData['metadata'] = $metadata;
+
                         $ticket->update($updateData);
                     } else {
                         // Create new ticket
@@ -134,10 +148,14 @@ class WhatsAppWebhookController extends Controller
                             'ticket_number' => $ticketNumber,
                             'client_id' => $client->id,
                             'category_id' => $category->id,
-                            'title' => 'محادثة واتساب - ' . $client->name,
+                            'title' => $subject ?? ('محادثة واتساب - ' . $client->name),
+                            'description' => $description ?? '',
                             'status' => $status,
                             'source' => 'whatsapp',
-                            'metadata' => ['provider_thread_id' => $providerThreadId]
+                            'metadata' => [
+                                'provider_thread_id' => $providerThreadId,
+                                'ai_summary' => $summary
+                            ]
                         ]);
                     }
                 }
