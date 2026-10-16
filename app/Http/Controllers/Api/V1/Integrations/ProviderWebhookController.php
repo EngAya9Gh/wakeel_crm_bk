@@ -27,31 +27,21 @@ class ProviderWebhookController extends Controller
 
         $phone = $request->input('phone');
         $name = $request->input('name', 'عميل واتساب محتمل');
+        $tenantId = 1; // Or from provider's token
 
-        // Check in ClientContacts
-        $contact = ClientContact::where('phone', $phone)->first();
-        if ($contact) {
-            return response()->json([
-                'is_new' => false,
-                'client_id' => $contact->client_id,
-                'contact_id' => $contact->id,
-                'name' => $contact->name,
-            ]);
-        }
-
-        // Check in Clients
-        $client = Client::where('phone', $phone)->first();
+        // Check flexibly in Clients and ClientContacts
+        $client = Client::findByPhoneFlexible($tenantId, (string)$phone);
         if ($client) {
+            $contact = $client->contacts()->first();
             return response()->json([
                 'is_new' => false,
                 'client_id' => $client->id,
-                'contact_id' => null,
+                'contact_id' => $contact?->id,
                 'name' => $client->name,
             ]);
         }
 
         // Not found -> Create New Lead
-        $tenantId = 1; // Or from provider's token
 
         DB::beginTransaction();
         try {

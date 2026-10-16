@@ -34,6 +34,22 @@ class TicketMessageController extends Controller
 
         $message = $this->ticketService->addMessage($ticket, $data);
 
+        // If it's a WhatsApp ticket and NOT an internal note, automatically forward to customer via WhatsApp!
+        if (empty($data['is_internal']) && ($ticket->source === 'whatsapp' || !empty($ticket->metadata['provider_thread_id']))) {
+            try {
+                $whatsappService = app(\App\Services\Integrations\Contracts\WhatsAppServiceInterface::class);
+                $threadId = $ticket->metadata['provider_thread_id'] ?? null;
+                if (!$threadId && $ticket->client?->phone) {
+                    $threadId = $whatsappService->findThreadByPhone($ticket->client->phone);
+                }
+                if ($threadId) {
+                    $whatsappService->replyToThread($threadId, $data['content'], 'text');
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to forward ticket reply to WhatsApp: " . $e->getMessage());
+            }
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'تم إضافة الرد بنجاح',

@@ -52,10 +52,90 @@ class WhatsAppWebhookController extends Controller
         if ($event === 'message.incoming') {
             $payload = $data;
             $threadId = $payload['thread_id'] ?? $payload['from'] ?? null;
+            $fromPhone = $payload['from'] ?? $payload['phone'] ?? null;
             
             if ($threadId) {
                 // Pass the tenant ID to the event so it can be scoped properly
                 \App\Events\NewWhatsAppMessageReceived::dispatch($payload, (string) $threadId, $tenant->id);
+            }
+
+            // Check if this incoming message is an evaluation rating for a recently closed ticket
+            $text = trim((string)($payload['body'] ?? $payload['text'] ?? $payload['message'] ?? $payload['content'] ?? ''));
+            if (empty($text) && !empty($payload['button_reply']['id'])) {
+                $text = (string)$payload['button_reply']['id'];
+            }
+            if (empty($text) && !empty($payload['button_reply']['title'])) {
+                $text = (string)$payload['button_reply']['title'];
+            }
+
+            $ratingVal = null;
+            if (preg_match('/^[1-5]$/', $text)) {
+                $ratingVal = (int) $text;
+            } elseif (preg_match('/(?:rating|star|stars|نجوم|نجمة)[_\s-]*([1-5])/iu', $text, $m)) {
+                $ratingVal = (int) $m[1];
+            } elseif (preg_match('/([1-5])\s*(?:star|stars|نجوم|نجمة)/iu', $text, $m)) {
+                $ratingVal = (int) $m[1];
+            } elseif (mb_substr_count($text, '⭐') >= 1 && mb_substr_count($text, '⭐') <= 5) {
+                $ratingVal = mb_substr_count($text, '⭐');
+            }
+
+            if ($ratingVal !== null && $ratingVal >= 1 && $ratingVal <= 5) {
+                // Find latest closed ticket for this thread or phone
+                $targetTicket = null;
+                if ($threadId) {
+                    $targetTicket = \App\Models\Ticket::where('tenant_id', $tenant->id)
+                        ->whereJsonContains('metadata->provider_thread_id', (string)$threadId)
+                        ->where('status', 'closed')
+                        ->latest('closed_at')
+                        ->first();
+                }
+
+                if (!$targetTicket && $fromPhone) {
+                    $foundClient = \App\Models\Client::findByPhoneFlexible($tenant->id, (string)$fromPhone);
+                    if ($foundClient) {
+                        $targetTicket = \App\Models\Ticket::where('tenant_id', $tenant->id)
+                            ->where('client_id', $foundClient->id)
+                            ->where('status', 'closed')
+                            ->latest('closed_at')
+                            ->first();
+                    }
+                }
+
+                // If not closed, find the latest ticket in general
+                if (!$targetTicket && $threadId) {
+                    $targetTicket = \App\Models\Ticket::where('tenant_id', $tenant->id)
+                        ->whereJsonContains('metadata->provider_thread_id', (string)$threadId)
+                        ->latest('id')
+                        ->first();
+                }
+
+                if ($targetTicket) {
+                    $defaultType = \App\Models\EvaluationType::where('tenant_id', $tenant->id)->first();
+                    $targetTicket->evaluations()->updateOrCreate(
+                        [
+                            'tenant_id' => $tenant->id,
+                            'ticket_id' => $targetTicket->id,
+                        ],
+                        [
+                            'client_id' => $targetTicket->client_id,
+                            'assigned_user_id' => $targetTicket->assigned_to,
+                            'type_id' => $defaultType ? $defaultType->id : null,
+                            'rating' => $ratingVal,
+                            'channel' => 'whatsapp',
+                            'notes' => 'تقييم عبر واتساب: ' . $ratingVal . ' نجوم',
+                            'metadata' => [
+                                'raw_message' => $text,
+                                'source' => 'whatsapp_incoming_rating'
+                            ]
+                        ]
+                    );
+
+                    $metadata = is_array($targetTicket->metadata) ? $targetTicket->metadata : (json_decode($targetTicket->metadata ?? '[]', true) ?? []);
+                    $metadata['rating'] = $ratingVal;
+                    $targetTicket->update(['metadata' => $metadata]);
+
+                    Log::info("Recorded WhatsApp Evaluation: {$ratingVal} stars for Ticket #{$targetTicket->ticket_number}");
+                }
             }
         }
         
@@ -65,15 +145,16 @@ class WhatsAppWebhookController extends Controller
                 $name = $data['name'] ?? 'WhatsApp Lead';
                 $client = null;
                 if ($phone) {
-                    $phone = preg_replace('/[^0-9]/', '', $phone);
-                    $client = \App\Models\Client::where('tenant_id', $tenant->id)->where('phone', $phone)->first();
+                    // Use flexible search to avoid duplicates due to + or leading zeros
+                    $client = \App\Models\Client::findByPhoneFlexible($tenant->id, (string)$phone);
                     if (!$client) {
+                        $digits = preg_replace('/[^0-9]/', '', (string)$phone);
                         $source = \App\Models\Source::where('name', 'واتساب')->first();
                         $defaultStatus = \App\Models\ClientStatus::where('is_default', true)->first();
                         $client = \App\Models\Client::create([
                             'tenant_id' => $tenant->id,
                             'name' => $name,
-                            'phone' => $phone,
+                            'phone' => $digits ?: $phone,
                             'status_id' => $defaultStatus ? $defaultStatus->id : 1,
                             'source_id' => $source ? $source->id : null,
                             'priority' => 'medium',
@@ -99,16 +180,15 @@ class WhatsAppWebhookController extends Controller
                 $status = $data['status'] ?? 'open'; // open, resolved, closed
 
                 if ($phone && $providerThreadId) {
-                    $phone = preg_replace('/[^0-9]/', '', $phone);
-                    
-                    // 1. Find or Create Client
-                    $client = \App\Models\Client::where('tenant_id', $tenant->id)->where('phone', $phone)->first();
+                    // 1. Find or Create Client flexibly
+                    $client = \App\Models\Client::findByPhoneFlexible($tenant->id, (string)$phone);
                     if (!$client) {
+                        $digits = preg_replace('/[^0-9]/', '', (string)$phone);
                         $source = \App\Models\Source::where('name', 'واتساب')->first();
                         $client = \App\Models\Client::create([
                             'tenant_id' => $tenant->id,
                             'name' => $data['name'] ?? 'عميل واتساب',
-                            'phone' => $phone,
+                            'phone' => $digits ?: $phone,
                             'source_id' => $source ? $source->id : null,
                         ]);
                     }
@@ -167,6 +247,29 @@ class WhatsAppWebhookController extends Controller
                         $updateData['metadata'] = $metadata;
 
                         $ticket->update($updateData);
+
+                        // If rating is provided in ticket.sync, record evaluation
+                        if ($rating) {
+                            $ratingVal = (int) preg_replace('/[^0-9]/', '', (string)$rating);
+                            if ($ratingVal >= 1 && $ratingVal <= 5) {
+                                $defaultType = \App\Models\EvaluationType::where('tenant_id', $tenant->id)->first();
+                                $ticket->evaluations()->updateOrCreate(
+                                    [
+                                        'tenant_id' => $tenant->id,
+                                        'ticket_id' => $ticket->id,
+                                    ],
+                                    [
+                                        'client_id' => $ticket->client_id,
+                                        'assigned_user_id' => $ticket->assigned_to,
+                                        'type_id' => $defaultType ? $defaultType->id : null,
+                                        'rating' => $ratingVal,
+                                        'channel' => 'whatsapp',
+                                        'notes' => 'تقييم عبر واتساب: ' . $ratingVal . ' نجوم',
+                                        'metadata' => ['source' => 'whatsapp_ticket_sync']
+                                    ]
+                                );
+                            }
+                        }
                     } else {
                         // Create brand new ticket
                         $lastTicket = \App\Models\Ticket::where('tenant_id', $tenant->id)->latest('id')->first();
@@ -188,6 +291,23 @@ class WhatsAppWebhookController extends Controller
                                 'rating' => $rating,
                             ])
                         ]);
+
+                        if ($rating) {
+                            $ratingVal = (int) preg_replace('/[^0-9]/', '', (string)$rating);
+                            if ($ratingVal >= 1 && $ratingVal <= 5) {
+                                $defaultType = \App\Models\EvaluationType::where('tenant_id', $tenant->id)->first();
+                                $ticket->evaluations()->create([
+                                    'tenant_id' => $tenant->id,
+                                    'client_id' => $client->id,
+                                    'assigned_user_id' => $ticket->assigned_to,
+                                    'type_id' => $defaultType ? $defaultType->id : null,
+                                    'rating' => $ratingVal,
+                                    'channel' => 'whatsapp',
+                                    'notes' => 'تقييم عبر واتساب: ' . $ratingVal . ' نجوم',
+                                    'metadata' => ['source' => 'whatsapp_ticket_sync']
+                                ]);
+                            }
+                        }
                     }
 
                     return response()->json([

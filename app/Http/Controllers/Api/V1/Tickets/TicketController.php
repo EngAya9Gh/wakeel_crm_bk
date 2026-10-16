@@ -109,10 +109,66 @@ class TicketController extends Controller
             'creator:id,name', 
             'assignedTo:id,name', 
             'category:id,name,color',
-            'messages.user:id,name'
+            'messages.user:id,name',
+            'evaluations'
         ]);
         $ticketArray = $ticket->toArray();
         $ticketArray['has_whatsapp_chat'] = ($ticket->source === 'whatsapp' || !empty($ticket->metadata['provider_thread_id']));
+
+        $latestEvaluation = $ticket->evaluations->sortByDesc('id')->first();
+        $ticketArray['evaluation'] = $latestEvaluation;
+        if (!isset($ticketArray['rating']) || $ticketArray['rating'] === null) {
+            $ticketArray['rating'] = $latestEvaluation ? $latestEvaluation->rating : ($ticket->metadata['rating'] ?? null);
+        }
+
+        // Live-merge WhatsApp messages from provider if it's a WhatsApp ticket
+        if ($ticketArray['has_whatsapp_chat']) {
+            try {
+                $whatsappService = app(\App\Services\Integrations\Contracts\WhatsAppServiceInterface::class);
+                $threadId = $ticket->metadata['provider_thread_id'] ?? null;
+                if (!$threadId && $ticket->client?->phone) {
+                    $threadId = $whatsappService->findThreadByPhone($ticket->client->phone);
+                    if ($threadId) {
+                        $meta = is_array($ticket->metadata) ? $ticket->metadata : [];
+                        $meta['provider_thread_id'] = $threadId;
+                        $ticket->update(['metadata' => $meta]);
+                    }
+                }
+
+                if ($threadId) {
+                    $providerMsgs = $whatsappService->getThreadMessages($threadId);
+                    if (!empty($providerMsgs) && is_array($providerMsgs)) {
+                        $formattedMsgs = [];
+                        foreach ($providerMsgs as $pm) {
+                            $isFromMe = !empty($pm['fromMe']);
+                            $formattedMsgs[] = [
+                                'id' => 'wa_' . ($pm['id'] ?? uniqid()),
+                                'ticket_id' => $ticket->id,
+                                'user_id' => $isFromMe ? ($ticket->assigned_to ?? 1) : null,
+                                'sender_name' => $isFromMe ? 'فريق الدعم (واتساب)' : ($ticket->client?->name ?? 'العميل'),
+                                'content' => $pm['content'] ?? $pm['body'] ?? $pm['text'] ?? '',
+                                'is_internal' => !empty($pm['isInternal']),
+                                'created_at' => $pm['createdAt'] ?? $pm['timestamp'] ?? now()->toIso8601String(),
+                                'source' => 'whatsapp',
+                                'user' => $isFromMe ? ['id' => $ticket->assigned_to ?? 1, 'name' => 'فريق الدعم (واتساب)'] : null,
+                            ];
+                        }
+
+                        $allMessages = collect($ticketArray['messages'] ?? [])
+                            ->concat($formattedMsgs)
+                            ->sortBy(function ($m) {
+                                return strtotime((string)($m['created_at'] ?? 'now'));
+                            })
+                            ->values()
+                            ->all();
+
+                        $ticketArray['messages'] = $allMessages;
+                    }
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning("Could not live-fetch provider messages in Ticket show: " . $e->getMessage());
+            }
+        }
 
         return response()->json([
             'success' => true,

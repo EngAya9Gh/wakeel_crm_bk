@@ -20,10 +20,22 @@ class Ticket extends Model
         'metadata' => 'array',
     ];
 
+    protected $appends = ['rating'];
+
     public function client() { return $this->belongsTo(Client::class); }
     public function creator() { return $this->belongsTo(User::class, 'user_id'); }
     public function assignedTo() { return $this->belongsTo(User::class, 'assigned_to'); }
     public function category() { return $this->belongsTo(TicketCategory::class, 'category_id'); }
     public function messages() { return $this->hasMany(TicketMessage::class); }
     public function evaluations() { return $this->hasMany(Evaluation::class); }
+
+    public function getRatingAttribute(): ?int
+    {
+        if ($this->relationLoaded('evaluations') && $this->evaluations->isNotEmpty()) {
+            return (int) $this->evaluations->first()->rating;
+        }
+
+        $metaRating = $this->metadata['rating'] ?? null;
+        return $metaRating !== null ? (int) $metaRating : null;
+    }
 }
