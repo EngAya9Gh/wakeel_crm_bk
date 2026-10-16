@@ -288,19 +288,33 @@ class TicketMessageController extends Controller
 
         $attachments = $mediaUrl ? [['url' => $mediaUrl, 'type' => $pm['type'] ?? 'file']] : null;
 
+        $rawId = $pm['id'] ?? ($pm['_id'] ?? uniqid());
+        $numericId = (int) (abs(crc32('wa_' . $rawId)) % 2000000000 + 1000);
+        $userId = $isFromMe ? ($ticket->assigned_to ?? 1) : null;
+        $senderEmail = $isFromMe ? ($ticket->assignedTo?->email ?? 'support@crm.test') : ($ticket->client?->email ?? null);
+
+        // Always provide a valid user object structure to satisfy strict Dart/Flutter models
+        $userObj = [
+            'id' => $userId ?? 0,
+            'name' => $senderName,
+            'email' => $senderEmail,
+            'permissions_list' => [],
+            'role' => null,
+        ];
+
         return [
-            'id' => 'wa_' . ($pm['id'] ?? ($pm['_id'] ?? uniqid())),
+            'id' => $numericId,
             'ticket_id' => $ticket->id,
-            'user_id' => $isFromMe ? ($ticket->assigned_to ?? 1) : null,
+            'user_id' => $userId,
             'sender_name' => $senderName,
-            'sender_email' => null,
+            'sender_email' => $senderEmail,
             'content' => $content,
             'is_internal' => !empty($pm['isInternal']),
             'attachments' => $attachments,
-            'created_at' => $pm['createdAt'] ?? $pm['timestamp'] ?? now()->toIso8601String(),
-            'updated_at' => $pm['createdAt'] ?? $pm['timestamp'] ?? now()->toIso8601String(),
+            'created_at' => date('Y-m-d\TH:i:s.000000\Z', strtotime($pm['createdAt'] ?? 'now')),
+            'updated_at' => date('Y-m-d\TH:i:s.000000\Z', strtotime($pm['updatedAt'] ?? ($pm['createdAt'] ?? 'now'))),
             'source' => 'whatsapp',
-            'user' => $isFromMe ? ['id' => $ticket->assigned_to ?? 1, 'name' => $senderName, 'permissions_list' => [], 'role' => null] : null,
+            'user' => $userObj,
         ];
     }
 }
