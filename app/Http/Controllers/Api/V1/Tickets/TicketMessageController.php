@@ -16,10 +16,77 @@ class TicketMessageController extends Controller
 
     public function index(Ticket $ticket): JsonResponse
     {
-        $messages = $ticket->messages()->with('user:id,name')->latest()->paginate(20);
+        $localMessages = $ticket->messages()->with('user:id,name')->get();
+        $formattedMsgs = [];
+
+        // Check if this ticket is linked to a WhatsApp thread
+        $threadId = $ticket->metadata['provider_thread_id'] ?? null;
+        if ($threadId || $ticket->source === 'whatsapp') {
+            try {
+                $whatsappService = app(\App\Services\Integrations\Contracts\WhatsAppServiceInterface::class);
+                if (!$threadId && $ticket->client?->phone) {
+                    $threadId = $whatsappService->findThreadByPhone($ticket->client->phone);
+                    if ($threadId) {
+                        $meta = is_array($ticket->metadata) ? $ticket->metadata : [];
+                        $meta['provider_thread_id'] = $threadId;
+                        $ticket->update(['metadata' => $meta]);
+                    }
+                }
+
+                if ($threadId) {
+                    $providerMsgs = $whatsappService->getThreadMessages((string)$threadId);
+                    if (!empty($providerMsgs) && is_array($providerMsgs)) {
+                        foreach ($providerMsgs as $pm) {
+                            $isFromMe = !empty($pm['fromMe']);
+                            $senderName = $isFromMe 
+                                ? ($ticket->assignedTo?->name ?? 'فريق الدعم') 
+                                : ($ticket->client?->name ?? 'العميل');
+
+                            $formattedMsgs[] = [
+                                'id' => 'wa_' . ($pm['id'] ?? uniqid()),
+                                'ticket_id' => $ticket->id,
+                                'user_id' => $isFromMe ? ($ticket->assigned_to ?? 1) : null,
+                                'sender_name' => $senderName,
+                                'sender_email' => null,
+                                'content' => $pm['content'] ?? $pm['body'] ?? $pm['text'] ?? '',
+                                'is_internal' => !empty($pm['isInternal']),
+                                'attachments' => !empty($pm['mediaUrl']) ? [['url' => $pm['mediaUrl']]] : null,
+                                'created_at' => $pm['createdAt'] ?? $pm['timestamp'] ?? now()->toIso8601String(),
+                                'updated_at' => $pm['createdAt'] ?? $pm['timestamp'] ?? now()->toIso8601String(),
+                                'source' => 'whatsapp',
+                                'user' => $isFromMe ? ['id' => $ticket->assigned_to ?? 1, 'name' => $senderName, 'permissions_list' => [], 'role' => null] : null,
+                            ];
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning("Could not live-fetch provider messages in TicketMessageController index: " . $e->getMessage());
+            }
+        }
+
+        // Merge local messages and WhatsApp messages, sorted by created_at DESC (as expected by latest() and Flutter chat view)
+        $allMessages = collect($localMessages->toArray())
+            ->concat($formattedMsgs)
+            ->sortByDesc(function ($m) {
+                return strtotime((string)($m['created_at'] ?? 'now'));
+            })
+            ->values();
+
+        $page = (int) request()->input('page', 1);
+        $perPage = 50;
+        $sliced = $allMessages->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+            $sliced,
+            $allMessages->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
         return response()->json([
             'success' => true,
-            'data' => $messages
+            'data' => $paginated
         ]);
     }
 

@@ -77,6 +77,28 @@ class TicketController extends Controller
 
         $tickets = $query->paginate($request->integer('per_page', 15));
 
+        // Auto-sync evaluations for tickets that have rating in metadata
+        $tickets->getCollection()->transform(function ($t) {
+            if (!empty($t->metadata['rating']) && $t->evaluations->isEmpty()) {
+                try {
+                    $defaultType = \App\Models\EvaluationType::where('tenant_id', $t->tenant_id)->first();
+                    $eval = \App\Models\Evaluation::create([
+                        'tenant_id' => $t->tenant_id,
+                        'client_id' => $t->client_id,
+                        'assigned_user_id' => $t->assigned_to,
+                        'ticket_id' => $t->id,
+                        'type_id' => $defaultType?->id,
+                        'rating' => (int) $t->metadata['rating'],
+                        'channel' => 'whatsapp',
+                        'notes' => 'تقييم عبر واتساب: ' . $t->metadata['rating'] . ' نجوم',
+                        'metadata' => ['source' => 'whatsapp_ticket_sync']
+                    ]);
+                    $t->setRelation('evaluations', collect([$eval]));
+                } catch (\Exception $e) {}
+            }
+            return $t;
+        });
+
         return response()->json([
             'success' => true,
             'data' => $tickets
@@ -112,6 +134,25 @@ class TicketController extends Controller
             'messages.user:id,name',
             'evaluations'
         ]);
+
+        if (!empty($ticket->metadata['rating']) && $ticket->evaluations->isEmpty()) {
+            try {
+                $defaultType = \App\Models\EvaluationType::where('tenant_id', $ticket->tenant_id)->first();
+                $eval = \App\Models\Evaluation::create([
+                    'tenant_id' => $ticket->tenant_id,
+                    'client_id' => $ticket->client_id,
+                    'assigned_user_id' => $ticket->assigned_to,
+                    'ticket_id' => $ticket->id,
+                    'type_id' => $defaultType?->id,
+                    'rating' => (int) $ticket->metadata['rating'],
+                    'channel' => 'whatsapp',
+                    'notes' => 'تقييم عبر واتساب: ' . $ticket->metadata['rating'] . ' نجوم',
+                    'metadata' => ['source' => 'whatsapp_ticket_sync']
+                ]);
+                $ticket->setRelation('evaluations', collect([$eval]));
+            } catch (\Exception $e) {}
+        }
+
         $ticketArray = $ticket->toArray();
         $ticketArray['has_whatsapp_chat'] = ($ticket->source === 'whatsapp' || !empty($ticket->metadata['provider_thread_id']));
 

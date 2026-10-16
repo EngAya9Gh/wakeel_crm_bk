@@ -155,8 +155,25 @@ class WhatsAppService implements WhatsAppServiceInterface
     {
         if ($this->isDummyMode()) return [];
 
-        $response = Http::withToken($this->apiKey)->get("{$this->baseUrl}/chat/threads/{$threadId}/messages");
-        return $response->successful() ? $response->json('data', []) : [];
+        try {
+            $response = Http::withToken($this->apiKey)->timeout(5)->get("{$this->baseUrl}/chat/threads/{$threadId}/messages");
+            if ($response->successful()) {
+                $json = $response->json();
+                if (isset($json['data']) && is_array($json['data'])) {
+                    return $json['data'];
+                }
+                if (isset($json['messages']) && is_array($json['messages'])) {
+                    return $json['messages'];
+                }
+                if (is_array($json) && array_is_list($json)) {
+                    return $json;
+                }
+            }
+        } catch (\Exception $e) {
+            Log::warning("WhatsApp getThreadMessages error: " . $e->getMessage());
+        }
+
+        return [];
     }
 
     public function replyToThread(string $threadId, string $content, string $type = 'text', ?string $mediaUrl = null): bool
