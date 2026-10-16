@@ -36,8 +36,49 @@ class TicketMessageController extends Controller
                 if ($threadId) {
                     $providerMsgs = $whatsappService->getThreadMessages((string)$threadId);
                     if (!empty($providerMsgs) && is_array($providerMsgs)) {
+                        $providerTicketId = $ticket->metadata['provider_ticket_id'] ?? null;
+                        $ticketCreatedAt = $ticket->created_at ? strtotime((string)$ticket->created_at) : null;
+                        $ticketClosedAt = $ticket->closed_at ? strtotime((string)$ticket->closed_at) : null;
+
                         foreach ($providerMsgs as $pm) {
+                            if (!is_array($pm)) continue;
+
+                            // Filter messages for this ticket if provider_ticket_id exists or timeframe matches
+                            if ($providerTicketId || $ticketCreatedAt) {
+                                $msgTicketId = $pm['ticketId'] ?? null;
+                                $msgTime = strtotime($pm['createdAt'] ?? '');
+                                
+                                $isMatch = false;
+                                if ($providerTicketId && $msgTicketId === $providerTicketId) {
+                                    $isMatch = true;
+                                } elseif ($ticketCreatedAt && $msgTime) {
+                                    $start = $ticketCreatedAt - 15; // 15s buffer
+                                    $end = $ticketClosedAt ? ($ticketClosedAt + 300) : (time() + 3600);
+                                    
+                                    if ($msgTime >= $start && $msgTime <= $end) {
+                                        if (empty($msgTicketId) || $msgTicketId === $providerTicketId) {
+                                            $isMatch = true;
+                                        } elseif (str_contains($pm['content'] ?? '', 'تقييم') || str_contains($pm['content'] ?? '', 'شكراً')) {
+                                            $isMatch = true;
+                                        }
+                                    }
+                                }
+                                
+                                if (!$isMatch) {
+                                    continue;
+                                }
+                            }
+
                             $formattedMsgs[] = $this->formatProviderMessage($pm, $ticket);
+                        }
+
+                        // Fallback: If no messages matched this ticket specifically, but the thread has messages and local messages is empty, show the recent thread messages
+                        if (empty($formattedMsgs) && $localMessages->isEmpty()) {
+                            foreach (array_slice($providerMsgs, -30) as $pm) {
+                                if (is_array($pm)) {
+                                    $formattedMsgs[] = $this->formatProviderMessage($pm, $ticket);
+                                }
+                            }
                         }
                     }
                 }
@@ -225,11 +266,26 @@ class TicketMessageController extends Controller
             }
         }
 
-        if (empty($content) && (!empty($pm['mediaUrl']) || !empty($pm['media']) || (!empty($pm['type']) && in_array($pm['type'], ['image', 'video', 'audio', 'document', 'voice'])))) {
-            $content = '📁 [' . ($pm['type'] ?? 'ملف وسائط') . ']';
+        $mediaUrl = $pm['mediaUrl'] ?? $pm['media'] ?? $pm['url'] ?? $pm['fileUrl'] ?? null;
+        if ($mediaUrl && is_string($mediaUrl) && str_starts_with($mediaUrl, '/')) {
+            $base = config('services.whatsapp.base_url', 'https://provider.wakeel.cc');
+            $scheme = parse_url($base, PHP_URL_SCHEME) ?? 'https';
+            $host = parse_url($base, PHP_URL_HOST) ?? 'provider.wakeel.cc';
+            $port = parse_url($base, PHP_URL_PORT) ? ':' . parse_url($base, PHP_URL_PORT) : '';
+            $mediaUrl = "{$scheme}://{$host}{$port}" . $mediaUrl;
         }
 
-        $mediaUrl = $pm['mediaUrl'] ?? $pm['media'] ?? $pm['url'] ?? $pm['fileUrl'] ?? null;
+        if (empty($content) && (!empty($mediaUrl) || !empty($pm['hasMedia']) || (!empty($pm['type']) && in_array(strtolower((string)$pm['type']), ['image', 'video', 'audio', 'document', 'voice', 'ptt'])))) {
+            $type = strtolower((string)($pm['type'] ?? 'file'));
+            $content = match($type) {
+                'audio', 'voice', 'ptt' => '🎤 رسالة صوتية',
+                'image' => '📷 صورة',
+                'video' => '🎥 مقطع فيديو',
+                'document' => '📄 مستند',
+                default => '📁 ملف وسائط'
+            };
+        }
+
         $attachments = $mediaUrl ? [['url' => $mediaUrl, 'type' => $pm['type'] ?? 'file']] : null;
 
         return [

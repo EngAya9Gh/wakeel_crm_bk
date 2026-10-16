@@ -27,6 +27,13 @@ class WhatsAppService implements WhatsAppServiceInterface
                 $this->baseUrl = rtrim($provider, '/');
             }
         }
+
+        if (empty($this->apiKey)) {
+            $this->apiKey = (string) (config('services.whatsapp.api_key') ?? '');
+        }
+        if (empty($this->baseUrl)) {
+            $this->baseUrl = (string) (config('services.whatsapp.base_url') ?? 'https://provider.wakeel.cc/api/v1');
+        }
     }
 
     public function send(string $to, string $message, ?array $media = null): bool
@@ -156,11 +163,21 @@ class WhatsAppService implements WhatsAppServiceInterface
         if ($this->isDummyMode()) return [];
 
         try {
-            $response = Http::withToken($this->apiKey)->timeout(5)->get("{$this->baseUrl}/chat/threads/{$threadId}/messages");
+            $response = Http::withToken($this->apiKey)->timeout(12)->get("{$this->baseUrl}/chat/threads/{$threadId}/messages");
             if ($response->successful()) {
                 $json = $response->json();
+                
+                // Provider returns { success: true, data: { messages: [...], pagination: {...} } }
+                if (isset($json['data']['messages']) && is_array($json['data']['messages'])) {
+                    return $json['data']['messages'];
+                }
                 if (isset($json['data']) && is_array($json['data'])) {
-                    return $json['data'];
+                    if (array_is_list($json['data'])) {
+                        return $json['data'];
+                    }
+                    if (isset($json['data']['messages']) && is_array($json['data']['messages'])) {
+                        return $json['data']['messages'];
+                    }
                 }
                 if (isset($json['messages']) && is_array($json['messages'])) {
                     return $json['messages'];
