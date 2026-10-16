@@ -37,25 +37,7 @@ class TicketMessageController extends Controller
                     $providerMsgs = $whatsappService->getThreadMessages((string)$threadId);
                     if (!empty($providerMsgs) && is_array($providerMsgs)) {
                         foreach ($providerMsgs as $pm) {
-                            $isFromMe = !empty($pm['fromMe']);
-                            $senderName = $isFromMe 
-                                ? ($ticket->assignedTo?->name ?? 'فريق الدعم') 
-                                : ($ticket->client?->name ?? 'العميل');
-
-                            $formattedMsgs[] = [
-                                'id' => 'wa_' . ($pm['id'] ?? uniqid()),
-                                'ticket_id' => $ticket->id,
-                                'user_id' => $isFromMe ? ($ticket->assigned_to ?? 1) : null,
-                                'sender_name' => $senderName,
-                                'sender_email' => null,
-                                'content' => $pm['content'] ?? $pm['body'] ?? $pm['text'] ?? '',
-                                'is_internal' => !empty($pm['isInternal']),
-                                'attachments' => !empty($pm['mediaUrl']) ? [['url' => $pm['mediaUrl']]] : null,
-                                'created_at' => $pm['createdAt'] ?? $pm['timestamp'] ?? now()->toIso8601String(),
-                                'updated_at' => $pm['createdAt'] ?? $pm['timestamp'] ?? now()->toIso8601String(),
-                                'source' => 'whatsapp',
-                                'user' => $isFromMe ? ['id' => $ticket->assigned_to ?? 1, 'name' => $senderName, 'permissions_list' => [], 'role' => null] : null,
-                            ];
+                            $formattedMsgs[] = $this->formatProviderMessage($pm, $ticket);
                         }
                     }
                 }
@@ -181,5 +163,88 @@ class TicketMessageController extends Controller
         }
 
         return response()->json(['success' => false, 'message' => 'فشل الإرسال عبر المزود'], 500);
+    }
+
+    private function formatProviderMessage(array $pm, Ticket $ticket): array
+    {
+        // 1. Determine direction (fromMe / incoming / outgoing)
+        $isFromMe = !empty($pm['fromMe']) 
+            || (isset($pm['from_me']) && $pm['from_me'])
+            || (isset($pm['direction']) && in_array(strtolower((string)$pm['direction']), ['outgoing', 'outbound', 'out']))
+            || (isset($pm['sender']) && in_array(strtolower((string)$pm['sender']), ['me', 'agent', 'system', 'business', 'user']))
+            || (!empty($pm['userId']) || !empty($pm['user_id']));
+
+        $senderName = $isFromMe 
+            ? ($ticket->assignedTo?->name ?? 'فريق الدعم (واتساب)') 
+            : ($ticket->client?->name ?? 'العميل');
+
+        // 2. Extract content thoroughly
+        $content = '';
+        foreach (['content', 'body', 'text', 'caption', 'msg'] as $field) {
+            if (!empty($pm[$field]) && is_string($pm[$field])) {
+                $content = trim($pm[$field]);
+                break;
+            }
+        }
+
+        if (empty($content) && !empty($pm['message'])) {
+            if (is_string($pm['message'])) {
+                $content = trim($pm['message']);
+            } elseif (is_array($pm['message'])) {
+                $msg = $pm['message'];
+                $content = $msg['conversation'] 
+                    ?? $msg['text'] 
+                    ?? $msg['extendedTextMessage']['text'] 
+                    ?? $msg['caption'] 
+                    ?? $msg['imageMessage']['caption'] 
+                    ?? $msg['videoMessage']['caption'] 
+                    ?? $msg['buttonsResponseMessage']['selectedDisplayText'] 
+                    ?? $msg['templateButtonReplyMessage']['selectedDisplayText'] 
+                    ?? $msg['listResponseMessage']['title'] 
+                    ?? '';
+            }
+        }
+
+        if (empty($content) && !empty($pm['payload'])) {
+            if (is_string($pm['payload'])) {
+                $content = trim($pm['payload']);
+            } elseif (is_array($pm['payload'])) {
+                $content = $pm['payload']['text'] ?? $pm['payload']['content'] ?? $pm['payload']['body'] ?? '';
+            }
+        }
+
+        if (empty($content)) {
+            // Check all other string properties that aren't metadata/IDs
+            foreach ($pm as $key => $val) {
+                if (is_string($val) && !in_array($key, ['id', '_id', 'threadId', 'thread_id', 'type', 'status', 'direction', 'createdAt', 'updatedAt', 'timestamp', 'from', 'to', 'tenantId', 'channelId', 'channel_id'])) {
+                    if (strlen(trim($val)) > 0 && !filter_var($val, FILTER_VALIDATE_URL)) {
+                        $content = trim($val);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (empty($content) && (!empty($pm['mediaUrl']) || !empty($pm['media']) || (!empty($pm['type']) && in_array($pm['type'], ['image', 'video', 'audio', 'document', 'voice'])))) {
+            $content = '📁 [' . ($pm['type'] ?? 'ملف وسائط') . ']';
+        }
+
+        $mediaUrl = $pm['mediaUrl'] ?? $pm['media'] ?? $pm['url'] ?? $pm['fileUrl'] ?? null;
+        $attachments = $mediaUrl ? [['url' => $mediaUrl, 'type' => $pm['type'] ?? 'file']] : null;
+
+        return [
+            'id' => 'wa_' . ($pm['id'] ?? ($pm['_id'] ?? uniqid())),
+            'ticket_id' => $ticket->id,
+            'user_id' => $isFromMe ? ($ticket->assigned_to ?? 1) : null,
+            'sender_name' => $senderName,
+            'sender_email' => null,
+            'content' => $content,
+            'is_internal' => !empty($pm['isInternal']),
+            'attachments' => $attachments,
+            'created_at' => $pm['createdAt'] ?? $pm['timestamp'] ?? now()->toIso8601String(),
+            'updated_at' => $pm['createdAt'] ?? $pm['timestamp'] ?? now()->toIso8601String(),
+            'source' => 'whatsapp',
+            'user' => $isFromMe ? ['id' => $ticket->assigned_to ?? 1, 'name' => $senderName, 'permissions_list' => [], 'role' => null] : null,
+        ];
     }
 }
