@@ -197,8 +197,17 @@ class TicketController extends Controller
                             ? strtotime((string)$prevTicket->closed_at)
                             : ($ticketCreatedAt ? ($ticketCreatedAt - (7 * 86400)) : (time() - (7 * 86400)));
 
+                        $seenProviderIds = [];
                         foreach ($providerMsgs as $pm) {
                             if (!is_array($pm)) continue;
+
+                            $rawId = $pm['id'] ?? ($pm['_id'] ?? null);
+                            if ($rawId && isset($seenProviderIds[$rawId])) {
+                                continue;
+                            }
+                            if ($rawId) {
+                                $seenProviderIds[$rawId] = true;
+                            }
 
                             // Filter messages for this ticket if provider_ticket_id exists or timeframe matches
                             if ($providerTicketId || $ticketCreatedAt) {
@@ -234,7 +243,27 @@ class TicketController extends Controller
                                 }
                             }
 
-                            $formattedMsgs[] = $this->formatProviderMessage($pm, $ticket);
+                            $pmFormatted = $this->formatProviderMessage($pm, $ticket);
+
+                            // Deduplicate: If this message originated from CRM by an agent, don't show the WhatsApp echo
+                            if (!empty($pmFormatted['user_id'])) {
+                                $isDuplicate = collect($ticketArray['messages'] ?? [])->contains(function ($local) use ($pmFormatted) {
+                                    $localContent = is_array($local) ? ($local['content'] ?? '') : ($local->content ?? '');
+                                    if (trim((string)$localContent) !== trim((string)$pmFormatted['content'])) {
+                                        return false;
+                                    }
+                                    $localCreatedAt = is_array($local) ? ($local['created_at'] ?? '') : ($local->created_at ?? '');
+                                    $localTime = strtotime((string)$localCreatedAt);
+                                    $providerTime = strtotime((string)$pmFormatted['created_at']);
+                                    return abs($localTime - $providerTime) <= 180;
+                                });
+
+                                if ($isDuplicate) {
+                                    continue;
+                                }
+                            }
+
+                            $formattedMsgs[] = $pmFormatted;
                         }
 
                         // Fallback: If no messages matched this ticket specifically, but the thread has messages and local messages is empty, show the recent thread messages
@@ -415,6 +444,15 @@ class TicketController extends Controller
             'role' => null,
         ];
 
+        $tz = \App\Services\TenantContext::isResolved() 
+            ? \App\Services\TenantContext::timezone() 
+            : config('app.timezone', 'Asia/Riyadh');
+        $rawCreatedAt = !empty($pm['createdAt']) ? $pm['createdAt'] : 'now';
+        $rawUpdatedAt = !empty($pm['updatedAt']) ? $pm['updatedAt'] : $rawCreatedAt;
+
+        $msgCreatedAt = \Carbon\Carbon::parse($rawCreatedAt)->setTimezone($tz)->toIso8601String();
+        $msgUpdatedAt = \Carbon\Carbon::parse($rawUpdatedAt)->setTimezone($tz)->toIso8601String();
+
         return [
             'id' => $numericId,
             'ticket_id' => $ticket->id,
@@ -424,8 +462,8 @@ class TicketController extends Controller
             'content' => $content,
             'is_internal' => !empty($pm['isInternal']),
             'attachments' => $attachments,
-            'created_at' => date('Y-m-d\TH:i:s.000000\Z', strtotime($pm['createdAt'] ?? 'now')),
-            'updated_at' => date('Y-m-d\TH:i:s.000000\Z', strtotime($pm['updatedAt'] ?? ($pm['createdAt'] ?? 'now'))),
+            'created_at' => $msgCreatedAt,
+            'updated_at' => $msgUpdatedAt,
             'source' => 'whatsapp',
             'user' => $userObj,
         ];

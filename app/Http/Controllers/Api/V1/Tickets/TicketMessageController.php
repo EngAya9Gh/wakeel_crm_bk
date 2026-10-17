@@ -48,8 +48,17 @@ class TicketMessageController extends Controller
                             ? strtotime((string)$prevTicket->closed_at)
                             : ($ticketCreatedAt ? ($ticketCreatedAt - (7 * 86400)) : (time() - (7 * 86400)));
 
+                        $seenProviderIds = [];
                         foreach ($providerMsgs as $pm) {
                             if (!is_array($pm)) continue;
+
+                            $rawId = $pm['id'] ?? ($pm['_id'] ?? null);
+                            if ($rawId && isset($seenProviderIds[$rawId])) {
+                                continue;
+                            }
+                            if ($rawId) {
+                                $seenProviderIds[$rawId] = true;
+                            }
 
                             // Filter messages for this ticket if provider_ticket_id exists or timeframe matches
                             if ($providerTicketId || $ticketCreatedAt) {
@@ -85,7 +94,26 @@ class TicketMessageController extends Controller
                                 }
                             }
 
-                            $formattedMsgs[] = $this->formatProviderMessage($pm, $ticket);
+                            $pmFormatted = $this->formatProviderMessage($pm, $ticket);
+
+                            // Deduplicate: If an agent sent this message from CRM, it already exists in $localMessages.
+                            // Dropping the provider echo preserves the original author name (e.g. رغد الشامل) and prevents duplicate.
+                            if (!empty($pmFormatted['user_id'])) {
+                                $isDuplicate = $localMessages->contains(function ($local) use ($pmFormatted) {
+                                    if (trim((string)$local->content) !== trim((string)$pmFormatted['content'])) {
+                                        return false;
+                                    }
+                                    $localTime = strtotime((string)$local->created_at);
+                                    $providerTime = strtotime((string)$pmFormatted['created_at']);
+                                    return abs($localTime - $providerTime) <= 180;
+                                });
+
+                                if ($isDuplicate) {
+                                    continue;
+                                }
+                            }
+
+                            $formattedMsgs[] = $pmFormatted;
                         }
 
                         // Fallback: If no messages matched this ticket specifically, but the thread has messages and local messages is empty, show the recent thread messages
