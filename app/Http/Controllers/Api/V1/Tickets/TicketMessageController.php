@@ -47,6 +47,7 @@ class TicketMessageController extends Controller
                         $windowStart = ($prevTicket && $prevTicket->closed_at)
                             ? strtotime((string)$prevTicket->closed_at)
                             : ($ticketCreatedAt ? ($ticketCreatedAt - (7 * 86400)) : (time() - (7 * 86400)));
+                        $prevProviderTicketId = $prevTicket?->provider_ticket_id ?? ($prevTicket?->metadata['provider_ticket_id'] ?? null);
 
                         $seenProviderIds = [];
                         foreach ($providerMsgs as $pm) {
@@ -60,6 +61,14 @@ class TicketMessageController extends Controller
                                 $seenProviderIds[$rawId] = true;
                             }
 
+                            $content = $pm['content'] ?? ($pm['message'] ?? '');
+                            $isEvaluationMsg = str_contains($content, 'تقييم') || str_contains($content, 'شكراً لتقييمك') || str_contains($content, 'RATE_');
+
+                            // Evaluation messages belong to the closed ticket that was evaluated, NEVER to an open ticket!
+                            if ($isEvaluationMsg && $ticket->status === 'open') {
+                                continue;
+                            }
+
                             // Filter messages for this ticket if provider_ticket_id exists or timeframe matches
                             if ($providerTicketId || $ticketCreatedAt) {
                                 $msgTicketId = $pm['ticketId'] ?? null;
@@ -67,13 +76,7 @@ class TicketMessageController extends Controller
                                 
                                 $isMatch = false;
                                 if ($providerTicketId && $msgTicketId === $providerTicketId) {
-                                    $isMatch = true;
-                                } elseif (empty($msgTicketId) && $ticketCreatedAt && $msgTime) {
-                                    // Messages sent before or during this ticket without a specific ticket ID
-                                    // Include messages from windowStart (since last ticket or up to 7 days) up to ticket close
-                                    $start = max($windowStart, $ticketCreatedAt - (7 * 86400));
-                                    $end = $ticketClosedAt ? ($ticketClosedAt + 300) : (time() + 3600);
-                                    if ($msgTime >= $start && $msgTime <= $end) {
+                                    if (!$isEvaluationMsg || $ticket->status !== 'open') {
                                         $isMatch = true;
                                     }
                                 } elseif ($ticketCreatedAt && $msgTime) {
@@ -81,9 +84,7 @@ class TicketMessageController extends Controller
                                     $end = $ticketClosedAt ? ($ticketClosedAt + 300) : (time() + 3600);
                                     
                                     if ($msgTime >= $start && $msgTime <= $end) {
-                                        if (empty($msgTicketId) || $msgTicketId === $providerTicketId) {
-                                            $isMatch = true;
-                                        } elseif (str_contains($pm['content'] ?? '', 'تقييم') || str_contains($pm['content'] ?? '', 'شكراً')) {
+                                        if (empty($msgTicketId) || $msgTicketId === $providerTicketId || ($prevProviderTicketId && $msgTicketId === $prevProviderTicketId)) {
                                             $isMatch = true;
                                         }
                                     }
@@ -222,9 +223,60 @@ class TicketMessageController extends Controller
         // 3. Fetch messages from Provider
         $messages = $whatsappService->getThreadMessages($threadId);
 
+        $providerTicketId = $ticket->provider_ticket_id ?? ($ticket->metadata['provider_ticket_id'] ?? null);
+        $ticketCreatedAt = $ticket->created_at ? strtotime((string)$ticket->created_at) : null;
+        $ticketClosedAt = $ticket->closed_at ? strtotime((string)$ticket->closed_at) : null;
+
+        $prevTicket = \App\Models\Ticket::where('tenant_id', $ticket->tenant_id)
+            ->where('client_id', $ticket->client_id)
+            ->where('id', '<', $ticket->id)
+            ->latest('id')
+            ->first();
+        $windowStart = ($prevTicket && $prevTicket->closed_at)
+            ? strtotime((string)$prevTicket->closed_at)
+            : ($ticketCreatedAt ? ($ticketCreatedAt - (7 * 86400)) : (time() - (7 * 86400)));
+        $prevProviderTicketId = $prevTicket?->provider_ticket_id ?? ($prevTicket?->metadata['provider_ticket_id'] ?? null);
+
+        $filtered = [];
+        foreach ($messages as $pm) {
+            if (!is_array($pm)) continue;
+
+            $content = $pm['content'] ?? ($pm['message'] ?? '');
+            $isEvaluationMsg = str_contains($content, 'تقييم') || str_contains($content, 'شكراً لتقييمك') || str_contains($content, 'RATE_');
+
+            if ($isEvaluationMsg && $ticket->status === 'open') {
+                continue;
+            }
+
+            if ($providerTicketId || $ticketCreatedAt) {
+                $msgTicketId = $pm['ticketId'] ?? null;
+                $msgTime = strtotime($pm['createdAt'] ?? '');
+                
+                $isMatch = false;
+                if ($providerTicketId && $msgTicketId === $providerTicketId) {
+                    if (!$isEvaluationMsg || $ticket->status !== 'open') {
+                        $isMatch = true;
+                    }
+                } elseif ($ticketCreatedAt && $msgTime) {
+                    $start = max($windowStart, $ticketCreatedAt - (7 * 86400));
+                    $end = $ticketClosedAt ? ($ticketClosedAt + 300) : (time() + 3600);
+                    
+                    if ($msgTime >= $start && $msgTime <= $end) {
+                        if (empty($msgTicketId) || $msgTicketId === $providerTicketId || ($prevProviderTicketId && $msgTicketId === $prevProviderTicketId)) {
+                            $isMatch = true;
+                        }
+                    }
+                }
+
+                if (!$isMatch) continue;
+            }
+
+            $filtered[] = $pm;
+        }
+
         return response()->json([
             'success' => true,
-            'data' => $messages
+            'data' => $filtered
         ]);
     }
 

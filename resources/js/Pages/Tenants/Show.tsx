@@ -9,6 +9,17 @@ import {
 } from '@/lib/api';
 
 const PLAN_LABELS: Record<string, string> = { basic: 'أساسي', pro: 'احترافي', ultimate: 'متكاملة', enterprise: 'مؤسسي' };
+const TIMEZONE_OPTIONS = [
+  { value: 'Asia/Riyadh', label: '🇸🇦 الرياض / الكويت / قطر (UTC+3)' },
+  { value: 'Asia/Damascus', label: '🇸🇾 دمشق (UTC+3)' },
+  { value: 'Europe/Istanbul', label: '🇹🇷 إسطنبول (UTC+3)' },
+  { value: 'Asia/Dubai', label: '🇦🇪 دبي / مسقط (UTC+4)' },
+  { value: 'Africa/Cairo', label: '🇪🇬 القاهرة (UTC+2/3)' },
+  { value: 'Asia/Amman', label: '🇯🇴 عمّان (UTC+3)' },
+  { value: 'Asia/Baghdad', label: '🇮🇶 بغداد (UTC+3)' },
+  { value: 'Asia/Beirut', label: '🇱🇧 بيروت (UTC+2)' },
+  { value: 'UTC', label: '🌐 التوقيت العالمي (UTC)' },
+];
 const TABS = ['الإعدادات العامة', 'الميزات والإضافات', 'مفاتيح API', 'المستخدمون'] as const;
 type Tab = typeof TABS[number];
 
@@ -130,6 +141,7 @@ function ApiKeysTab({ tenantId }: { tenantId: number }) {
 function SettingsTab({ tenant }: { tenant: Tenant }) {
   const [form, setForm] = useState({
     name: tenant.name, email: tenant.email || '', phone: tenant.phone || '', plan: tenant.plan,
+    timezone: tenant.timezone || 'Asia/Riyadh',
     whatsapp_provider: (tenant.settings?.whatsapp_provider as string) || '',
     whatsapp_api_key: (tenant.settings?.whatsapp_api_key as string) || '',
     whatsapp_phone_number: (tenant.settings?.whatsapp_phone_number as string) || '',
@@ -145,6 +157,7 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
     try {
       await updateTenant(tenant.id, {
         name: form.name, email: form.email, phone: form.phone, plan: form.plan,
+        timezone: form.timezone,
         settings: {
           whatsapp_provider: form.whatsapp_provider,
           whatsapp_api_key: form.whatsapp_api_key,
@@ -174,10 +187,16 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
             </select>
           </div>
           <div>
+            <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>المنطقة الزمنية (التوقيت)</label>
+            <select className="input-dark" value={form.timezone} onChange={e => update('timezone', e.target.value)} style={{ appearance: 'none' }}>
+              {TIMEZONE_OPTIONS.map(tz => <option key={tz.value} value={tz.value}>{tz.label}</option>)}
+            </select>
+          </div>
+          <div>
             <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>البريد الإلكتروني</label>
             <input className="input-dark" type="email" value={form.email} onChange={e => update('email', e.target.value)} />
           </div>
-          <div>
+          <div style={{ gridColumn: '1 / -1' }}>
             <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>رقم الهاتف</label>
             <input className="input-dark" value={form.phone} onChange={e => update('phone', e.target.value)} />
           </div>

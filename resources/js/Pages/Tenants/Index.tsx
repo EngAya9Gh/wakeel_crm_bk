@@ -6,6 +6,17 @@ import { fetchTenants, toggleTenant, deleteTenant, createTenant, type Tenant } f
 import DashboardLayout from '../../Layouts/DashboardLayout';
 
 const PLAN_LABELS: Record<string, string> = { basic: 'أساسي', pro: 'احترافي', enterprise: 'مؤسسي' };
+const TIMEZONE_OPTIONS = [
+  { value: 'Asia/Riyadh', label: '🇸🇦 الرياض / الكويت / قطر (UTC+3)' },
+  { value: 'Asia/Damascus', label: '🇸🇾 دمشق (UTC+3)' },
+  { value: 'Europe/Istanbul', label: '🇹🇷 إسطنبول (UTC+3)' },
+  { value: 'Asia/Dubai', label: '🇦🇪 دبي / مسقط (UTC+4)' },
+  { value: 'Africa/Cairo', label: '🇪🇬 القاهرة (UTC+2/3)' },
+  { value: 'Asia/Amman', label: '🇯🇴 عمّان (UTC+3)' },
+  { value: 'Asia/Baghdad', label: '🇮🇶 بغداد (UTC+3)' },
+  { value: 'Asia/Beirut', label: '🇱🇧 بيروت (UTC+2)' },
+  { value: 'UTC', label: '🌐 التوقيت العالمي (UTC)' },
+];
 
 function Modal({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
   return (
@@ -18,7 +29,7 @@ function Modal({ onClose, children }: { onClose: () => void; children: React.Rea
 }
 
 function AddTenantModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
-  const [form, setForm] = useState({ name: '', slug: '', email: '', plan: 'basic', admin_name: '', admin_email: '', admin_password: 'Password@123' });
+  const [form, setForm] = useState({ name: '', slug: '', email: '', plan: 'basic', timezone: 'Asia/Riyadh', admin_name: '', admin_email: '', admin_password: 'Password@123' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -70,6 +81,12 @@ function AddTenantModal({ onClose, onSuccess }: { onClose: () => void; onSuccess
               <option value="enterprise">مؤسسي</option>
             </select>
           </div>
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>المنطقة الزمنية (التوقيت) *</label>
+          <select className="input-dark" value={form.timezone} onChange={e => update('timezone', e.target.value)} style={{ appearance: 'none' }}>
+            {TIMEZONE_OPTIONS.map(tz => <option key={tz.value} value={tz.value}>{tz.label}</option>)}
+          </select>
         </div>
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20, marginBottom: 16 }}>
           <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>إجباري: إنشاء حساب لمدير النظام</p>

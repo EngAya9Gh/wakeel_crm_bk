@@ -8,6 +8,7 @@ export interface Tenant {
   logo: string | null;
   is_active: boolean;
   plan: 'basic' | 'pro' | 'enterprise';
+  timezone?: string | null;
   settings: Record<string, unknown> | null;
   features?: string[] | null;
   users_count?: number;
