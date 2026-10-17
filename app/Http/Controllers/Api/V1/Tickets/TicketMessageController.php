@@ -20,25 +20,33 @@ class TicketMessageController extends Controller
         $formattedMsgs = [];
 
         // Check if this ticket is linked to a WhatsApp thread
-        $threadId = $ticket->metadata['provider_thread_id'] ?? null;
+        $threadId = $ticket->provider_thread_id ?? ($ticket->metadata['provider_thread_id'] ?? null);
         if ($threadId || $ticket->source === 'whatsapp') {
             try {
                 $whatsappService = app(\App\Services\Integrations\Contracts\WhatsAppServiceInterface::class);
                 if (!$threadId && $ticket->client?->phone) {
                     $threadId = $whatsappService->findThreadByPhone($ticket->client->phone);
                     if ($threadId) {
-                        $meta = is_array($ticket->metadata) ? $ticket->metadata : [];
-                        $meta['provider_thread_id'] = $threadId;
-                        $ticket->update(['metadata' => $meta]);
+                        $ticket->update(['provider_thread_id' => $threadId]);
                     }
                 }
 
                 if ($threadId) {
                     $providerMsgs = $whatsappService->getThreadMessages((string)$threadId);
                     if (!empty($providerMsgs) && is_array($providerMsgs)) {
-                        $providerTicketId = $ticket->metadata['provider_ticket_id'] ?? null;
+                        $providerTicketId = $ticket->provider_ticket_id ?? ($ticket->metadata['provider_ticket_id'] ?? null);
                         $ticketCreatedAt = $ticket->created_at ? strtotime((string)$ticket->created_at) : null;
                         $ticketClosedAt = $ticket->closed_at ? strtotime((string)$ticket->closed_at) : null;
+
+                        // Find previous closed ticket for this client to determine start of conversation window
+                        $prevTicket = \App\Models\Ticket::where('tenant_id', $ticket->tenant_id)
+                            ->where('client_id', $ticket->client_id)
+                            ->where('id', '<', $ticket->id)
+                            ->latest('id')
+                            ->first();
+                        $windowStart = ($prevTicket && $prevTicket->closed_at)
+                            ? strtotime((string)$prevTicket->closed_at)
+                            : ($ticketCreatedAt ? ($ticketCreatedAt - (7 * 86400)) : (time() - (7 * 86400)));
 
                         foreach ($providerMsgs as $pm) {
                             if (!is_array($pm)) continue;
@@ -51,8 +59,16 @@ class TicketMessageController extends Controller
                                 $isMatch = false;
                                 if ($providerTicketId && $msgTicketId === $providerTicketId) {
                                     $isMatch = true;
+                                } elseif (empty($msgTicketId) && $ticketCreatedAt && $msgTime) {
+                                    // Messages sent before or during this ticket without a specific ticket ID
+                                    // Include messages from windowStart (since last ticket or up to 7 days) up to ticket close
+                                    $start = max($windowStart, $ticketCreatedAt - (7 * 86400));
+                                    $end = $ticketClosedAt ? ($ticketClosedAt + 300) : (time() + 3600);
+                                    if ($msgTime >= $start && $msgTime <= $end) {
+                                        $isMatch = true;
+                                    }
                                 } elseif ($ticketCreatedAt && $msgTime) {
-                                    $start = $ticketCreatedAt - 15; // 15s buffer
+                                    $start = max($windowStart, $ticketCreatedAt - (7 * 86400));
                                     $end = $ticketClosedAt ? ($ticketClosedAt + 300) : (time() + 3600);
                                     
                                     if ($msgTime >= $start && $msgTime <= $end) {
@@ -124,16 +140,22 @@ class TicketMessageController extends Controller
 
         $message = $this->ticketService->addMessage($ticket, $data);
 
-        // If it's a WhatsApp ticket and NOT an internal note, automatically forward to customer via WhatsApp!
-        if (empty($data['is_internal']) && ($ticket->source === 'whatsapp' || !empty($ticket->metadata['provider_thread_id']))) {
+        // Forward to WhatsApp thread:
+        // - If normal message: sends message to customer on WhatsApp
+        // - If internal note: sends team note to provider (isInternal: true) without texting the customer
+        $threadId = $ticket->provider_thread_id ?? ($ticket->metadata['provider_thread_id'] ?? null);
+        if ($ticket->source === 'whatsapp' || !empty($threadId)) {
             try {
                 $whatsappService = app(\App\Services\Integrations\Contracts\WhatsAppServiceInterface::class);
-                $threadId = $ticket->metadata['provider_thread_id'] ?? null;
                 if (!$threadId && $ticket->client?->phone) {
                     $threadId = $whatsappService->findThreadByPhone($ticket->client->phone);
+                    if ($threadId) {
+                        $ticket->update(['provider_thread_id' => $threadId]);
+                    }
                 }
                 if ($threadId) {
-                    $whatsappService->replyToThread($threadId, $data['content'], 'text');
+                    $isInternal = !empty($data['is_internal']);
+                    $whatsappService->replyToThread($threadId, $data['content'], 'text', null, $isInternal);
                 }
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error("Failed to forward ticket reply to WhatsApp: " . $e->getMessage());
@@ -154,17 +176,14 @@ class TicketMessageController extends Controller
             return response()->json(['success' => false, 'message' => 'العميل لا يملك رقم هاتف'], 400);
         }
 
-        // 1. Try to get thread_id from ticket metadata
-        $threadId = $ticket->metadata['provider_thread_id'] ?? null;
+        // 1. Try to get thread_id from dedicated column, then metadata
+        $threadId = $ticket->provider_thread_id ?? ($ticket->metadata['provider_thread_id'] ?? null);
         
         // 2. If not found, ask Provider via findThreadByPhone
         if (!$threadId) {
             $threadId = $whatsappService->findThreadByPhone($phone);
             if ($threadId) {
-                // Save it to metadata for future speed
-                $metadata = $ticket->metadata ?? [];
-                $metadata['provider_thread_id'] = $threadId;
-                $ticket->update(['metadata' => $metadata]);
+                $ticket->update(['provider_thread_id' => $threadId]);
             }
         }
 

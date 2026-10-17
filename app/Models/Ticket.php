@@ -18,6 +18,7 @@ class Ticket extends Model
         'resolved_at' => 'datetime',
         'closed_at' => 'datetime',
         'metadata' => 'array',
+        'rating' => 'integer',
     ];
 
     protected $appends = ['rating'];
@@ -29,8 +30,28 @@ class Ticket extends Model
     public function messages() { return $this->hasMany(TicketMessage::class); }
     public function evaluations() { return $this->hasMany(Evaluation::class); }
 
+    public function scopeByProviderThread($query, string $threadId)
+    {
+        return $query->where(function ($q) use ($threadId) {
+            $q->where('provider_thread_id', $threadId)
+              ->orWhereJsonContains('metadata->provider_thread_id', $threadId);
+        });
+    }
+
+    public function scopeByProviderTicket($query, string $providerTicketId)
+    {
+        return $query->where(function ($q) use ($providerTicketId) {
+            $q->where('provider_ticket_id', $providerTicketId)
+              ->orWhereJsonContains('metadata->provider_ticket_id', $providerTicketId);
+        });
+    }
+
     public function getRatingAttribute(): ?int
     {
+        if (isset($this->attributes['rating']) && $this->attributes['rating'] !== null) {
+            return (int) $this->attributes['rating'];
+        }
+
         if ($this->relationLoaded('evaluations') && $this->evaluations->isNotEmpty()) {
             return (int) $this->evaluations->first()->rating;
         }

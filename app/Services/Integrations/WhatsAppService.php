@@ -193,13 +193,14 @@ class WhatsAppService implements WhatsAppServiceInterface
         return [];
     }
 
-    public function replyToThread(string $threadId, string $content, string $type = 'text', ?string $mediaUrl = null): bool
+    public function replyToThread(string $threadId, string $content, string $type = 'text', ?string $mediaUrl = null, bool $isInternal = false): bool
     {
         if ($this->isDummyMode()) return true;
 
         $payload = [
             'content' => $content,
             'type' => $type,
+            'isInternal' => $isInternal,
         ];
         
         if ($mediaUrl) {

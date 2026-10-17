@@ -32,7 +32,7 @@ interface WhatsAppServiceInterface
 
     public function getThreadMessages(string $threadId): array;
 
-    public function replyToThread(string $threadId, string $content, string $type = 'text', ?string $mediaUrl = null): bool;
+    public function replyToThread(string $threadId, string $content, string $type = 'text', ?string $mediaUrl = null, bool $isInternal = false): bool;
 
     /**
      * Download media from WhatsApp Provider.

@@ -50,8 +50,11 @@ class TicketController extends Controller
         }
 
         if ($request->has('rating')) {
-            $query->whereHas('evaluations', function($q) use ($request) {
-                $q->where('rating', $request->rating);
+            $query->where(function($q) use ($request) {
+                $q->where('tickets.rating', $request->rating)
+                  ->orWhereHas('evaluations', function($sub) use ($request) {
+                      $sub->where('rating', $request->rating);
+                  });
             });
         }
 
@@ -77,9 +80,10 @@ class TicketController extends Controller
 
         $tickets = $query->paginate($request->integer('per_page', 15));
 
-        // Auto-sync evaluations for tickets that have rating in metadata
+        // Auto-sync evaluations for tickets that have rating
         $tickets->getCollection()->transform(function ($t) {
-            if (!empty($t->metadata['rating']) && $t->evaluations->isEmpty()) {
+            $effectiveRating = $t->rating ?? ($t->metadata['rating'] ?? null);
+            if (!empty($effectiveRating) && $t->evaluations->isEmpty()) {
                 try {
                     $defaultType = \App\Models\EvaluationType::where('tenant_id', $t->tenant_id)->first();
                     $eval = \App\Models\Evaluation::create([
@@ -88,9 +92,9 @@ class TicketController extends Controller
                         'assigned_user_id' => $t->assigned_to,
                         'ticket_id' => $t->id,
                         'type_id' => $defaultType?->id,
-                        'rating' => (int) $t->metadata['rating'],
+                        'rating' => (int) $effectiveRating,
                         'channel' => 'whatsapp',
-                        'notes' => 'تقييم عبر واتساب: ' . $t->metadata['rating'] . ' نجوم',
+                        'notes' => 'تقييم عبر واتساب: ' . $effectiveRating . ' نجوم',
                         'metadata' => ['source' => 'whatsapp_ticket_sync']
                     ]);
                     $t->setRelation('evaluations', collect([$eval]));
@@ -135,7 +139,8 @@ class TicketController extends Controller
             'evaluations'
         ]);
 
-        if (!empty($ticket->metadata['rating']) && $ticket->evaluations->isEmpty()) {
+        $effectiveRating = $ticket->rating ?? ($ticket->metadata['rating'] ?? null);
+        if (!empty($effectiveRating) && $ticket->evaluations->isEmpty()) {
             try {
                 $defaultType = \App\Models\EvaluationType::where('tenant_id', $ticket->tenant_id)->first();
                 $eval = \App\Models\Evaluation::create([
@@ -144,9 +149,9 @@ class TicketController extends Controller
                     'assigned_user_id' => $ticket->assigned_to,
                     'ticket_id' => $ticket->id,
                     'type_id' => $defaultType?->id,
-                    'rating' => (int) $ticket->metadata['rating'],
+                    'rating' => (int) $effectiveRating,
                     'channel' => 'whatsapp',
-                    'notes' => 'تقييم عبر واتساب: ' . $ticket->metadata['rating'] . ' نجوم',
+                    'notes' => 'تقييم عبر واتساب: ' . $effectiveRating . ' نجوم',
                     'metadata' => ['source' => 'whatsapp_ticket_sync']
                 ]);
                 $ticket->setRelation('evaluations', collect([$eval]));
@@ -154,35 +159,43 @@ class TicketController extends Controller
         }
 
         $ticketArray = $ticket->toArray();
-        $ticketArray['has_whatsapp_chat'] = ($ticket->source === 'whatsapp' || !empty($ticket->metadata['provider_thread_id']));
+        $ticketArray['has_whatsapp_chat'] = ($ticket->source === 'whatsapp' || !empty($ticket->provider_thread_id) || !empty($ticket->metadata['provider_thread_id']));
 
         $latestEvaluation = $ticket->evaluations->sortByDesc('id')->first();
         $ticketArray['evaluation'] = $latestEvaluation;
         if (!isset($ticketArray['rating']) || $ticketArray['rating'] === null) {
-            $ticketArray['rating'] = $latestEvaluation ? $latestEvaluation->rating : ($ticket->metadata['rating'] ?? null);
+            $ticketArray['rating'] = $latestEvaluation ? $latestEvaluation->rating : $effectiveRating;
         }
 
         // Live-merge WhatsApp messages from provider if it's a WhatsApp ticket
         if ($ticketArray['has_whatsapp_chat']) {
             try {
                 $whatsappService = app(\App\Services\Integrations\Contracts\WhatsAppServiceInterface::class);
-                $threadId = $ticket->metadata['provider_thread_id'] ?? null;
+                $threadId = $ticket->provider_thread_id ?? ($ticket->metadata['provider_thread_id'] ?? null);
                 if (!$threadId && $ticket->client?->phone) {
                     $threadId = $whatsappService->findThreadByPhone($ticket->client->phone);
                     if ($threadId) {
-                        $meta = is_array($ticket->metadata) ? $ticket->metadata : [];
-                        $meta['provider_thread_id'] = $threadId;
-                        $ticket->update(['metadata' => $meta]);
+                        $ticket->update(['provider_thread_id' => $threadId]);
                     }
                 }
 
                 if ($threadId) {
                     $providerMsgs = $whatsappService->getThreadMessages($threadId);
                     if (!empty($providerMsgs) && is_array($providerMsgs)) {
-                        $providerTicketId = $ticket->metadata['provider_ticket_id'] ?? null;
+                        $providerTicketId = $ticket->provider_ticket_id ?? ($ticket->metadata['provider_ticket_id'] ?? null);
                         $ticketCreatedAt = $ticket->created_at ? strtotime((string)$ticket->created_at) : null;
                         $ticketClosedAt = $ticket->closed_at ? strtotime((string)$ticket->closed_at) : null;
                         $formattedMsgs = [];
+
+                        // Find previous closed ticket for this client to determine start of conversation window
+                        $prevTicket = \App\Models\Ticket::where('tenant_id', $ticket->tenant_id)
+                            ->where('client_id', $ticket->client_id)
+                            ->where('id', '<', $ticket->id)
+                            ->latest('id')
+                            ->first();
+                        $windowStart = ($prevTicket && $prevTicket->closed_at)
+                            ? strtotime((string)$prevTicket->closed_at)
+                            : ($ticketCreatedAt ? ($ticketCreatedAt - (7 * 86400)) : (time() - (7 * 86400)));
 
                         foreach ($providerMsgs as $pm) {
                             if (!is_array($pm)) continue;
@@ -195,8 +208,16 @@ class TicketController extends Controller
                                 $isMatch = false;
                                 if ($providerTicketId && $msgTicketId === $providerTicketId) {
                                     $isMatch = true;
+                                } elseif (empty($msgTicketId) && $ticketCreatedAt && $msgTime) {
+                                    // Messages sent before or during this ticket without a specific ticket ID
+                                    // Include messages from windowStart (since last ticket or up to 7 days) up to ticket close
+                                    $start = max($windowStart, $ticketCreatedAt - (7 * 86400));
+                                    $end = $ticketClosedAt ? ($ticketClosedAt + 300) : (time() + 3600);
+                                    if ($msgTime >= $start && $msgTime <= $end) {
+                                        $isMatch = true;
+                                    }
                                 } elseif ($ticketCreatedAt && $msgTime) {
-                                    $start = $ticketCreatedAt - 15; // 15s buffer
+                                    $start = max($windowStart, $ticketCreatedAt - (7 * 86400));
                                     $end = $ticketClosedAt ? ($ticketClosedAt + 300) : (time() + 3600);
                                     
                                     if ($msgTime >= $start && $msgTime <= $end) {
