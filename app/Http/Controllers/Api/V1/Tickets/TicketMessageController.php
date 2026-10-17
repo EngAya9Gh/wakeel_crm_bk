@@ -95,33 +95,14 @@ class TicketMessageController extends Controller
                                 }
                             }
 
-                            $pmFormatted = $this->formatProviderMessage($pm, $ticket);
-
-                            // Deduplicate: If an agent sent this message from CRM, it already exists in $localMessages.
-                            // Dropping the provider echo preserves the original author name (e.g. رغد الشامل) and prevents duplicate.
-                            if (!empty($pmFormatted['user_id'])) {
-                                $isDuplicate = $localMessages->contains(function ($local) use ($pmFormatted) {
-                                    if (trim((string)$local->content) !== trim((string)$pmFormatted['content'])) {
-                                        return false;
-                                    }
-                                    $localTime = strtotime((string)$local->created_at);
-                                    $providerTime = strtotime((string)$pmFormatted['created_at']);
-                                    return abs($localTime - $providerTime) <= 180;
-                                });
-
-                                if ($isDuplicate) {
-                                    continue;
-                                }
-                            }
-
-                            $formattedMsgs[] = $pmFormatted;
+                            $formattedMsgs[] = $this->formatProviderMessage($pm, $ticket, $localMessages);
                         }
 
                         // Fallback: If no messages matched this ticket specifically, but the thread has messages and local messages is empty, show the recent thread messages
                         if (empty($formattedMsgs) && $localMessages->isEmpty()) {
                             foreach (array_slice($providerMsgs, -30) as $pm) {
                                 if (is_array($pm)) {
-                                    $formattedMsgs[] = $this->formatProviderMessage($pm, $ticket);
+                                    $formattedMsgs[] = $this->formatProviderMessage($pm, $ticket, $localMessages);
                                 }
                             }
                         }
@@ -132,13 +113,39 @@ class TicketMessageController extends Controller
             }
         }
 
-        // Merge local messages and WhatsApp messages, sorted by created_at DESC (as expected by latest() and Flutter chat view)
-        $allMessages = collect($localMessages->toArray())
-            ->concat($formattedMsgs)
-            ->sortByDesc(function ($m) {
-                return strtotime((string)($m['created_at'] ?? 'now'));
-            })
-            ->values();
+        $isWhatsApp = ($ticket->source === 'whatsapp' || !empty($threadId));
+
+        if ($isWhatsApp && !empty($formattedMsgs)) {
+            // As requested: For WhatsApp tickets, the WhatsApp provider is the single source of truth for the conversation.
+            // We do NOT include local chat messages (is_internal = false) to prevent duplication.
+            // Only local internal team notes (is_internal = true) that are not already present in the provider stream are merged.
+            $localInternalNotes = $localMessages->filter(function ($m) use ($formattedMsgs) {
+                if (!$m->is_internal) {
+                    return false;
+                }
+                foreach ($formattedMsgs as $pm) {
+                    if (!empty($pm['is_internal']) && trim((string)$pm['content']) === trim((string)$m->content)) {
+                        return false;
+                    }
+                }
+                return true;
+            })->values()->toArray();
+
+            $allMessages = collect($formattedMsgs)
+                ->concat($localInternalNotes)
+                ->sortByDesc(function ($m) {
+                    return strtotime((string)($m['created_at'] ?? 'now'));
+                })
+                ->values();
+        } else {
+            // Non-WhatsApp ticket or provider returned no messages: fallback to local messages
+            $allMessages = collect($localMessages->toArray())
+                ->concat($formattedMsgs)
+                ->sortByDesc(function ($m) {
+                    return strtotime((string)($m['created_at'] ?? 'now'));
+                })
+                ->values();
+        }
 
         $page = (int) request()->input('page', 1);
         $perPage = 50;
@@ -305,7 +312,7 @@ class TicketMessageController extends Controller
         return response()->json(['success' => false, 'message' => 'فشل الإرسال عبر المزود'], 500);
     }
 
-    private function formatProviderMessage(array $pm, Ticket $ticket): array
+    private function formatProviderMessage(array $pm, Ticket $ticket, $localMessages = null): array
     {
         // 1. Determine direction (fromMe / incoming / outgoing)
         $isFromMe = !empty($pm['fromMe']) 
@@ -392,6 +399,23 @@ class TicketMessageController extends Controller
         $userId = $isFromMe ? ($ticket->assigned_to ?? 1) : null;
         $senderEmail = $isFromMe ? ($ticket->assignedTo?->email ?? 'support@crm.test') : ($ticket->client?->email ?? null);
 
+        // If from me, check if we can identify the specific agent who sent this message from CRM
+        if ($isFromMe && $localMessages && !empty($content)) {
+            $matchingLocal = collect($localMessages)->first(function ($lm) use ($content) {
+                $c = is_array($lm) ? ($lm['content'] ?? '') : ($lm->content ?? '');
+                return trim((string)$c) === trim((string)$content);
+            });
+            if ($matchingLocal) {
+                $lmUserId = is_array($matchingLocal) ? ($matchingLocal['user_id'] ?? null) : ($matchingLocal->user_id ?? null);
+                $lmUserName = is_array($matchingLocal) ? ($matchingLocal['user']['name'] ?? $matchingLocal['sender_name'] ?? null) : ($matchingLocal->user?->name ?? $matchingLocal->sender_name ?? null);
+                $lmUserEmail = is_array($matchingLocal) ? ($matchingLocal['user']['email'] ?? $matchingLocal['sender_email'] ?? null) : ($matchingLocal->user?->email ?? $matchingLocal->sender_email ?? null);
+
+                if ($lmUserId) $userId = $lmUserId;
+                if ($lmUserName) $senderName = $lmUserName;
+                if ($lmUserEmail) $senderEmail = $lmUserEmail;
+            }
+        }
+
         // Always provide a valid user object structure to satisfy strict Dart/Flutter models
         $userObj = [
             'id' => $userId ?? 0,
@@ -403,12 +427,24 @@ class TicketMessageController extends Controller
 
         $tz = \App\Services\TenantContext::isResolved() 
             ? \App\Services\TenantContext::timezone() 
-            : config('app.timezone', 'Asia/Riyadh');
+            : 'Asia/Riyadh';
+
         $rawCreatedAt = !empty($pm['createdAt']) ? $pm['createdAt'] : 'now';
         $rawUpdatedAt = !empty($pm['updatedAt']) ? $pm['updatedAt'] : $rawCreatedAt;
 
-        $msgCreatedAt = \Carbon\Carbon::parse($rawCreatedAt)->setTimezone($tz)->toIso8601String();
-        $msgUpdatedAt = \Carbon\Carbon::parse($rawUpdatedAt)->setTimezone($tz)->toIso8601String();
+        $parseDate = function ($raw) use ($tz) {
+            if (is_numeric($raw)) {
+                $c = \Carbon\Carbon::createFromTimestamp((int) $raw, 'UTC');
+            } elseif (is_string($raw) && !empty($raw)) {
+                $c = \Carbon\Carbon::parse($raw, 'UTC');
+            } else {
+                $c = \Carbon\Carbon::now('UTC');
+            }
+            return $c->setTimezone($tz)->toIso8601String();
+        };
+
+        $msgCreatedAt = $parseDate($rawCreatedAt);
+        $msgUpdatedAt = $parseDate($rawUpdatedAt);
 
         return [
             'id' => $numericId,

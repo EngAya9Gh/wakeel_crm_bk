@@ -65,8 +65,8 @@ trait BelongsToTenant
     {
         $tz = TenantContext::isResolved() 
             ? TenantContext::timezone() 
-            : config('app.timezone', 'Asia/Riyadh');
+            : 'Asia/Riyadh';
 
-        return \Carbon\Carbon::instance($date)->setTimezone($tz)->toIso8601String();
+        return \Carbon\Carbon::parse($date->format('Y-m-d H:i:s'), 'UTC')->setTimezone($tz)->toIso8601String();
     }
 }
