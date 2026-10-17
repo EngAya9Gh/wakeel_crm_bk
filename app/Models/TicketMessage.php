@@ -18,4 +18,13 @@ class TicketMessage extends Model
 
     public function ticket() { return $this->belongsTo(Ticket::class); }
     public function user() { return $this->belongsTo(User::class); }
+
+    protected function serializeDate(\DateTimeInterface $date): string
+    {
+        $tz = \App\Services\TenantContext::isResolved() 
+            ? \App\Services\TenantContext::timezone() 
+            : config('app.timezone', 'Asia/Riyadh');
+
+        return \Carbon\Carbon::instance($date)->setTimezone($tz)->toIso8601String();
+    }
 }

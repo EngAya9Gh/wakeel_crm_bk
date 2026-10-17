@@ -57,4 +57,16 @@ trait BelongsToTenant
     {
         return $this->belongsTo(\App\Models\Tenant::class);
     }
+
+    /**
+     * Prepare a date for array / JSON serialization according to the Tenant's timezone.
+     */
+    protected function serializeDate(\DateTimeInterface $date): string
+    {
+        $tz = TenantContext::isResolved() 
+            ? TenantContext::timezone() 
+            : config('app.timezone', 'Asia/Riyadh');
+
+        return \Carbon\Carbon::instance($date)->setTimezone($tz)->toIso8601String();
+    }
 }

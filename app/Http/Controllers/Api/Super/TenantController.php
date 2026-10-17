@@ -76,6 +76,7 @@ class TenantController extends Controller
             'email'                   => 'nullable|email|max:255',
             'phone'                   => 'nullable|string|max:20',
             'plan'                    => ['required', Rule::in(['basic', 'pro', 'enterprise'])],
+            'timezone'                => 'nullable|string|max:50',
             'is_active'               => 'boolean',
             // Required: create admin user for this tenant
             'admin_name'              => 'required|string|max:255',
@@ -90,6 +91,7 @@ class TenantController extends Controller
                 'email'     => $validated['email'] ?? null,
                 'phone'     => $validated['phone'] ?? null,
                 'plan'      => $validated['plan'],
+                'timezone'  => $validated['timezone'] ?? 'Asia/Riyadh',
                 'is_active' => $validated['is_active'] ?? true,
             ]);
 
@@ -123,6 +125,7 @@ class TenantController extends Controller
             'email'     => 'nullable|email|max:255',
             'phone'     => 'nullable|string|max:20',
             'plan'      => ['sometimes', Rule::in(['basic', 'pro', 'ultimate', 'enterprise'])],
+            'timezone'  => 'nullable|string|max:50',
             'is_active' => 'boolean',
             'settings'  => 'nullable|array',
         ]);

@@ -22,6 +22,7 @@ class Tenant extends Model
         'settings',
         'features',
         'plan',
+        'timezone',
         'webhook_token',
     ];
 

@@ -463,4 +463,48 @@ class SettingsController extends Controller
             
         return $this->successResponse($permissions);
     }
+
+    // ===================== TENANT PROFILE & TIMEZONE =====================
+
+    public function getTenantProfile()
+    {
+        $tenant = \App\Services\TenantContext::current();
+        return $this->successResponse([
+            'id' => $tenant->id,
+            'name' => $tenant->name,
+            'slug' => $tenant->slug,
+            'email' => $tenant->email,
+            'phone' => $tenant->phone,
+            'logo' => $tenant->logo,
+            'timezone' => $tenant->timezone ?: 'Asia/Riyadh',
+            'plan' => $tenant->plan,
+            'settings' => $tenant->settings,
+        ]);
+    }
+
+    public function updateTenantProfile(Request $request)
+    {
+        $tenant = \App\Services\TenantContext::current();
+
+        $validated = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'timezone' => 'sometimes|required|string|max:50',
+            'logo' => 'nullable|string',
+        ]);
+
+        $tenant->update($validated);
+
+        return $this->successResponse([
+            'id' => $tenant->id,
+            'name' => $tenant->name,
+            'slug' => $tenant->slug,
+            'email' => $tenant->email,
+            'phone' => $tenant->phone,
+            'logo' => $tenant->logo,
+            'timezone' => $tenant->timezone,
+            'plan' => $tenant->plan,
+        ], 'تم تحديث بيانات وإعدادات المستأجر بنجاح');
+    }
 }

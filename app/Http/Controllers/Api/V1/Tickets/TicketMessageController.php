@@ -321,6 +321,15 @@ class TicketMessageController extends Controller
             'role' => null,
         ];
 
+        $tz = \App\Services\TenantContext::isResolved() 
+            ? \App\Services\TenantContext::timezone() 
+            : config('app.timezone', 'Asia/Riyadh');
+        $rawCreatedAt = !empty($pm['createdAt']) ? $pm['createdAt'] : 'now';
+        $rawUpdatedAt = !empty($pm['updatedAt']) ? $pm['updatedAt'] : $rawCreatedAt;
+
+        $msgCreatedAt = \Carbon\Carbon::parse($rawCreatedAt)->setTimezone($tz)->toIso8601String();
+        $msgUpdatedAt = \Carbon\Carbon::parse($rawUpdatedAt)->setTimezone($tz)->toIso8601String();
+
         return [
             'id' => $numericId,
             'ticket_id' => $ticket->id,
@@ -330,8 +339,8 @@ class TicketMessageController extends Controller
             'content' => $content,
             'is_internal' => !empty($pm['isInternal']),
             'attachments' => $attachments,
-            'created_at' => date('Y-m-d\TH:i:s.000000\Z', strtotime($pm['createdAt'] ?? 'now')),
-            'updated_at' => date('Y-m-d\TH:i:s.000000\Z', strtotime($pm['updatedAt'] ?? ($pm['createdAt'] ?? 'now'))),
+            'created_at' => $msgCreatedAt,
+            'updated_at' => $msgUpdatedAt,
             'source' => 'whatsapp',
             'user' => $userObj,
         ];

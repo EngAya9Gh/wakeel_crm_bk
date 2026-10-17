@@ -262,6 +262,10 @@ Route::prefix('v1')->group(function () {
             Route::put('integrations/{platform}', [\App\Http\Controllers\Api\V1\Settings\IntegrationController::class, 'update']);
 
             Route::get('permissions', [$s[0], 'getPermissions']);
+
+            // Tenant Profile & Timezone
+            Route::get('tenant/profile', [$s[0], 'getTenantProfile']);
+            Route::put('tenant/profile', [$s[0], 'updateTenantProfile']);
         });
         
         // Constants (System Dropdowns)

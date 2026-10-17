@@ -32,6 +32,30 @@ class TenantContext
     public static function set(Tenant $tenant): void
     {
         static::$tenant = $tenant;
+        
+        $tz = !empty($tenant->timezone) ? $tenant->timezone : ($tenant->settings['timezone'] ?? config('app.timezone', 'Asia/Riyadh'));
+        if ($tz) {
+            try {
+                date_default_timezone_set($tz);
+                config(['app.timezone' => $tz]);
+            } catch (\Throwable $e) {}
+        }
+    }
+
+    /**
+     * Get the current tenant's timezone.
+     */
+    public static function timezone(): string
+    {
+        if (static::$tenant !== null && !empty(static::$tenant->timezone)) {
+            return static::$tenant->timezone;
+        }
+
+        if (static::$tenant !== null && !empty(static::$tenant->settings['timezone'])) {
+            return static::$tenant->settings['timezone'];
+        }
+
+        return config('app.timezone', 'Asia/Riyadh');
     }
 
     /**

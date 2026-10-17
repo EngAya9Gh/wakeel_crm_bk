@@ -186,7 +186,12 @@ class WhatsAppWebhookController extends Controller
                     $ticket = null;
                     if ($providerTicketId) {
                         $ticket = \App\Models\Ticket::where('tenant_id', $tenant->id)
-                            ->byProviderTicket((string)$providerTicketId)
+                            ->where(function ($q) use ($providerTicketId) {
+                                $q->byProviderTicket((string)$providerTicketId);
+                                if (is_numeric($providerTicketId)) {
+                                    $q->orWhere('id', (int)$providerTicketId);
+                                }
+                            })
                             ->first();
                     }
                     if (!$ticket && $providerThreadId) {
