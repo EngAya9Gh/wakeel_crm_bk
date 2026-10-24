@@ -26,21 +26,29 @@ class WebhookController extends Controller
 
         $mode = $request->query('hub_mode');
         $challenge = $request->query('hub_challenge');
-        $verifyToken = $request->query('hub_verify_token');
+        $verifyToken = (string) $request->query('hub_verify_token', '');
 
-        // Meta verify token should match the tenant's configured one, or we can just accept it for simplicity
-        // Let's check if the tenant has a meta integration and accept it
-        $integration = $tenant->integrations()->where('platform', 'meta')->where('is_active', true)->first();
-        
-        if ($mode === 'subscribe' && $challenge) {
-            if ($integration && isset($integration->credentials['webhook_secret']) && $verifyToken === $integration->credentials['webhook_secret']) {
-                return response((string) $challenge, 200);
-            }
-            // Fallback for easy testing if verify_token isn't strictly enforced locally
-            return response((string) $challenge, 200);
+        if ($mode !== 'subscribe' || !$challenge) {
+            return response()->json(['error' => 'Invalid verification request'], 400);
         }
 
-        return response()->json(['error' => 'Invalid verification request'], 400);
+        $integration = $tenant->integrations()->where('platform', 'meta')->where('is_active', true)->first();
+        $credentials = $integration?->credentials ?? [];
+
+        // The "Verify token" entered in the Meta dashboard must be one of the tenant's own secrets
+        $acceptedTokens = array_filter([
+            $credentials['webhook_secret'] ?? null,
+            $credentials['verify_token'] ?? null,
+            $tenant->webhook_token,
+        ], fn ($value) => is_string($value) && $value !== '');
+
+        foreach ($acceptedTokens as $accepted) {
+            if ($verifyToken !== '' && hash_equals($accepted, $verifyToken)) {
+                return response((string) $challenge, 200);
+            }
+        }
+
+        return response()->json(['error' => 'Invalid verify token'], 403);
     }
 
     public function receiveMeta(Request $request, string $token)
@@ -48,6 +56,16 @@ class WebhookController extends Controller
         $tenant = Tenant::where('webhook_token', $token)->first();
         if (!$tenant) {
             return response()->json(['error' => 'Invalid token'], 404);
+        }
+
+        // When the tenant saved its Meta app secret, only accept payloads signed by Meta
+        $integration = $tenant->integrations()->where('platform', 'meta')->first();
+        $appSecret = $integration?->credentials['app_secret'] ?? null;
+        if (is_string($appSecret) && $appSecret !== '') {
+            $expected = 'sha256=' . hash_hmac('sha256', $request->getContent(), $appSecret);
+            if (!hash_equals($expected, (string) $request->header('X-Hub-Signature-256', ''))) {
+                return response()->json(['error' => 'Invalid signature'], 403);
+            }
         }
 
         $payload = $request->all();

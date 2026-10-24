@@ -36,7 +36,7 @@ class TicketMessageController extends Controller
                     if (!empty($providerMsgs) && is_array($providerMsgs)) {
                         $providerTicketId = $ticket->provider_ticket_id ?? ($ticket->metadata['provider_ticket_id'] ?? null);
                         $ticketCreatedAt = $ticket->created_at ? strtotime((string)$ticket->created_at) : null;
-                        $ticketClosedAt = $ticket->closed_at ? strtotime((string)$ticket->closed_at) : null;
+                        $ticketClosedAt = (!in_array($ticket->status, ['open', 'in_progress', 'pending_client']) && $ticket->closed_at) ? strtotime((string)$ticket->closed_at) : null;
 
                         // Find previous closed ticket for this client to determine start of conversation window
                         $prevTicket = \App\Models\Ticket::where('tenant_id', $ticket->tenant_id)
@@ -232,7 +232,7 @@ class TicketMessageController extends Controller
 
         $providerTicketId = $ticket->provider_ticket_id ?? ($ticket->metadata['provider_ticket_id'] ?? null);
         $ticketCreatedAt = $ticket->created_at ? strtotime((string)$ticket->created_at) : null;
-        $ticketClosedAt = $ticket->closed_at ? strtotime((string)$ticket->closed_at) : null;
+        $ticketClosedAt = (!in_array($ticket->status, ['open', 'in_progress', 'pending_client']) && $ticket->closed_at) ? strtotime((string)$ticket->closed_at) : null;
 
         $prevTicket = \App\Models\Ticket::where('tenant_id', $ticket->tenant_id)
             ->where('client_id', $ticket->client_id)

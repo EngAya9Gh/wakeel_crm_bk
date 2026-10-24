@@ -49,25 +49,8 @@ Route::post('/rate/{token}', function (\Illuminate\Http\Request $request, $token
     return back()->with('success', 'شكراً لك! تم إرسال تقييمك بنجاح.');
 });
 
-Route::get('/fix-storage', function () {
-    $target = storage_path('app/public');
-    $link = public_path('storage');
-
-    echo "<h2>Storage Fixer</h2>";
-    echo "Target: $target<br>";
-    echo "Link: $link<br><hr>";
-
-    if (file_exists($link)) {
-        unlink($link);
-        echo "Old link removed.<br>";
-    }
-
-    symlink($target, $link);
-    echo "✅ Symlink created.<br>";
-    
-    echo "<hr>Check if public is readable: " . (is_readable($target) ? 'Yes' : 'No');
-});
-//
+// The storage symlink is created by deploy.sh (`php artisan storage:link --force`),
+// so there is no public route for it.
 
 // =====================================================================
 // SUPER ADMIN WEB ROUTES

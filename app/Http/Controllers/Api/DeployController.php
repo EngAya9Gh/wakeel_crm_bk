@@ -11,11 +11,8 @@ class DeployController extends Controller
     public function deploy(Request $request)
     {
         // 1. Verify token to ensure security
-        $token = $request->query('token');
-        $expectedToken = config('app.deploy_token', 'wakeel-secret-deploy-2026');
-        
-        if (!$token || $token !== $expectedToken) {
-            Log::warning('Unauthorized deployment attempt.');
+        if (!$this->isAuthorized($request)) {
+            Log::warning('Unauthorized deployment attempt.', ['ip' => $request->ip()]);
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
@@ -44,10 +41,7 @@ class DeployController extends Controller
 
     public function logs(Request $request)
     {
-        $token = $request->query('token');
-        $expectedToken = config('app.deploy_token', 'wakeel-secret-deploy-2026');
-        
-        if (!$token || $token !== $expectedToken) {
+        if (!$this->isAuthorized($request)) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
@@ -60,5 +54,16 @@ class DeployController extends Controller
         $logContent = file_get_contents($logPath);
         return response($logContent)->header('Content-Type', 'text/plain');
     }
-}
 
+    /**
+     * The token comes from DEPLOY_TOKEN only. With no token configured the
+     * endpoints stay disabled instead of falling back to a guessable default.
+     */
+    private function isAuthorized(Request $request): bool
+    {
+        $expectedToken = (string) config('app.deploy_token');
+        $token = (string) ($request->header('X-Deploy-Token') ?? $request->query('token', ''));
+
+        return $expectedToken !== '' && $token !== '' && hash_equals($expectedToken, $token);
+    }
+}

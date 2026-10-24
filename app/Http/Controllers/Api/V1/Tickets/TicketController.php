@@ -184,7 +184,7 @@ class TicketController extends Controller
                     if (!empty($providerMsgs) && is_array($providerMsgs)) {
                         $providerTicketId = $ticket->provider_ticket_id ?? ($ticket->metadata['provider_ticket_id'] ?? null);
                         $ticketCreatedAt = $ticket->created_at ? strtotime((string)$ticket->created_at) : null;
-                        $ticketClosedAt = $ticket->closed_at ? strtotime((string)$ticket->closed_at) : null;
+                        $ticketClosedAt = (!in_array($ticket->status, ['open', 'in_progress', 'pending_client']) && $ticket->closed_at) ? strtotime((string)$ticket->closed_at) : null;
                         $formattedMsgs = [];
 
                         // Find previous closed ticket for this client to determine start of conversation window
@@ -321,6 +321,9 @@ class TicketController extends Controller
         
         if (isset($data['status']) && $data['status'] === 'closed' && $ticket->status !== 'closed') {
             $data['closed_at'] = now();
+        }
+        if (isset($data['status']) && in_array($data['status'], ['open', 'in_progress', 'pending_client'])) {
+            $data['closed_at'] = null;
         }
 
         $ticket->update($data);

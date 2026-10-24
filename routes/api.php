@@ -332,11 +332,12 @@ Route::prefix('super/v1')->middleware(['auth:sanctum', 'super.admin'])->group(fu
 });
 
 
+// Guarded by DEPLOY_TOKEN inside the controller; throttled to slow down token guessing
 use App\Http\Controllers\Api\DeployController;
-Route::post('/webhooks/deploy', [DeployController::class, 'deploy']);
-
-
-Route::get('/webhooks/deploy/logs', [DeployController::class, 'logs']);
+Route::middleware('throttle:5,1')->group(function () {
+    Route::post('/webhooks/deploy', [DeployController::class, 'deploy']);
+    Route::get('/webhooks/deploy/logs', [DeployController::class, 'logs']);
+});
 
 // =====================================================================
 // INTEGRATION WEBHOOKS (Public, unauthenticated, verified internally)

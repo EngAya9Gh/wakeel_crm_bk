@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Deploy Webhook Token
+    |--------------------------------------------------------------------------
+    |
+    | Secret required by POST /api/webhooks/deploy and its logs endpoint.
+    | When empty, both endpoints are disabled.
+    |
+    */
+
+    'deploy_token' => env('DEPLOY_TOKEN'),
+
 ];

@@ -39,11 +39,12 @@ return [
         ],
     ],
 
+    // Credentials come from .env only; never commit real values as defaults here
     'whatsapp' => [
         'base_url' => env('WHATSAPP_API_BASE_URL', 'https://provider.wakeel.cc/api/v1'),
-        'api_key' => env('WHATSAPP_API_KEY', 'sk_c4e4f745ad1e073678e828a6c41def6fb7cb97ea5444346b6f501f92f9bc90ce'),
-        'channel_id' => env('WHATSAPP_CHANNEL_ID', '15aa0381-e75d-4cc7-905b-863734b3e072'),
-        'webhook_secret' => env('WHATSAPP_WEBHOOK_SECRET', 'wakeel_secret_2026'),
+        'api_key' => env('WHATSAPP_API_KEY'),
+        'channel_id' => env('WHATSAPP_CHANNEL_ID'),
+        'webhook_secret' => env('WHATSAPP_WEBHOOK_SECRET'),
     ],
 
     /*
